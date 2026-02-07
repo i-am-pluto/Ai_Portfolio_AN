@@ -29,7 +29,7 @@
 
 Use this command to emit a beep:
 ```bash
-echo -e '\x07'
+afplay notification.mp3
 ```
 
 This produces a terminal bell without any external dependencies (no mp3, no audio files).
