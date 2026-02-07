@@ -1,0 +1,17 @@
+[project]
+name = "ai-portfolio-analyzer"
+version = "0.1.0"
+description = "MCP server for Indian stock portfolio analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=2.0",
+    "yfinance>=0.2.36",
+    "pandas>=2.0",
+    "nselib>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ipython",
+]
