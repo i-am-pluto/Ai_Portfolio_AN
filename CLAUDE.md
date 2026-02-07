@@ -24,6 +24,16 @@
 
 ## Special Instructions
 
+### Notion Documentation
+✅ **Project created**: [AI Portfolio Analyzer - MCP Server](https://www.notion.so/300e9e4941268109931ed8f77fd5faf6)
+
+**Guidelines**:
+- Add a page for every major architectural/design update
+- Skip minor fixes and code changes (self-documenting)
+- Document deployment changes, module restructures, and integration updates
+- Keep Notion in sync with project evolution
+
+
 ### Sound Feedback
 **Play a short beep sound at the end of each task and whenever user input is required.**
 

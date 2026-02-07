@@ -24,5 +24,9 @@ register_fundamentals(mcp)
 register_corporate(mcp)
 register_market_info(mcp)
 
-if __name__ == "__main__":
+def main():
+    """Entry point for console script."""
     mcp.run()
+
+if __name__ == "__main__":
+    main()
