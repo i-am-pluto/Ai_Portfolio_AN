@@ -11,13 +11,12 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "ai-portfolio-analyzer"
-version = "0.1.0"
+name = "ai-stock-analyzer"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
     { name = "nselib" },
-    { name = "pandas" },
     { name = "yfinance" },
 ]
 
@@ -33,7 +32,6 @@ requires-dist = [
     { name = "fastmcp", specifier = ">=2.0" },
     { name = "ipython", marker = "extra == 'dev'" },
     { name = "nselib", specifier = ">=2.0" },
-    { name = "pandas", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "uvicorn", marker = "extra == 'dev'", specifier = ">=0.24.0" },
     { name = "yfinance", specifier = ">=0.2.36" },

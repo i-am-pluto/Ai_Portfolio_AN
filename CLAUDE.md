@@ -1,20 +1,25 @@
-# AI Portfolio Analyzer - Claude Code Configuration
+# AI Stock Analyzer - Claude Code Configuration
 
 ## Project Context
-- **Type**: MCP Server (FastMCP) - Indian stock portfolio analyzer
-- **Tech Stack**: Python with yfinance, nselib, pandas, fastmcp
+- **Type**: MCP Server (FastMCP) - Indian stock analytical tools
+- **Tech Stack**: Python with yfinance, nselib, fastmcp
 - **Entry Point**: `stocks_fetch/server.py`
 - **Package Manager**: `uv` (installed at `~/.local/bin`)
+- **Dual MCP Setup**: This server + Zerodha Kite MCP (portfolio/prices/trading)
 
 ## Architecture Overview
-- `stocks_fetch/sources/` — 5 modules with 13 tools across:
-  - Portfolio management
-  - Price history & technical analysis
-  - Fundamentals & metrics
-  - Corporate actions
-  - Market information & news
-- `stocks_fetch/utils/symbols.py` — NSE ↔ Yahoo ticker mapping
-- `data/portfolio.csv` — Sample 8-stock portfolio
+- `stocks_fetch/sources/` — 3 modules with 6 tools:
+  - Fundamentals & metrics (PE, PB, ROE, financial statements, peer comparison)
+  - Corporate actions (dividends, splits, NSE actions)
+  - Stock news
+- `stocks_fetch/utils/symbols.py` — NSE → Yahoo ticker mapping (for yfinance)
+- `.mcp.json` — Dual-server config: Kite MCP + our stock-analyzer
+
+### Kite MCP (Zerodha)
+- Handles: real portfolio holdings, real-time prices, historical data, order management
+- Endpoint: `https://mcp.kite.trade/sse` via `npx mcp-remote`
+- Auth: Zerodha 2FA (credentials never pass through AI)
+- Free, no API costs
 
 ## Key Development Notes
 - Each source module exports `register(mcp)` to avoid circular imports

@@ -1,8 +1,8 @@
-"""Market overview and stock news tools."""
+"""Stock news tools."""
 
-import yfinance as yf
-
-from stocks_fetch.utils.symbols import to_yahoo_symbol
+from stocks_fetch.constants import MAX_NEWS_COUNT
+from stocks_fetch.services import news as news_service
+from stocks_fetch.utils.symbols import validate_symbol
 
 
 def register(mcp) -> None:
@@ -18,50 +18,10 @@ def register(mcp) -> None:
 
         Returns list of dicts with: title, publisher, link, publish_time.
         """
-        count = min(count, 10)
-        ticker = yf.Ticker(to_yahoo_symbol(symbol))
-        news = ticker.news
+        count = min(count, MAX_NEWS_COUNT)
 
-        if not news:
-            return f"No news found for {symbol}."
+        err = validate_symbol(symbol)
+        if err:
+            return err
 
-        results = []
-        for item in news[:count]:
-            content = item.get("content", {})
-            provider = content.get("provider", {})
-            click_url = content.get("clickThroughUrl", {})
-            results.append({
-                "title": content.get("title"),
-                "publisher": provider.get("displayName"),
-                "link": click_url.get("url"),
-                "publish_time": content.get("pubDate"),
-            })
-
-        return results
-
-    @mcp.tool(annotations={"readOnlyHint": True})
-    def get_market_overview() -> dict:
-        """Get a snapshot of key Indian market indices (NIFTY 50 and SENSEX).
-
-        Returns dict with current values, day change, and change percent for each index.
-        """
-        indices = {
-            "nifty_50": "^NSEI",
-            "sensex": "^BSESN",
-        }
-
-        result = {}
-        for name, ticker_sym in indices.items():
-            ticker = yf.Ticker(ticker_sym)
-            info = ticker.info
-
-            result[name] = {
-                "price": info.get("regularMarketPrice"),
-                "previous_close": info.get("regularMarketPreviousClose") or info.get("previousClose"),
-                "change": info.get("regularMarketChange"),
-                "change_percent": info.get("regularMarketChangePercent"),
-                "day_high": info.get("regularMarketDayHigh") or info.get("dayHigh"),
-                "day_low": info.get("regularMarketDayLow") or info.get("dayLow"),
-            }
-
-        return result
+        return news_service.get_stock_news(symbol, count)

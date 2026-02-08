@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "kite": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.kite.trade/sse"]
+    },
+    "stock-analyzer": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "~/Documents/code/Ai_Portfolio_AN",
+        "python",
+        "-m",
+        "stocks_fetch"
+      ]
+    }
+  }
+}

@@ -3,25 +3,22 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ai-portfolio-analyzer"
-version = "0.1.0"
-description = "MCP server for Indian stock portfolio analysis"
+name = "ai-stock-analyzer"
+version = "0.2.0"
+description = "MCP server for Indian stock analysis — fundamentals, corporate actions & news"
 requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2.0",
     "yfinance>=0.2.36",
-    "pandas>=2.0",
     "nselib>=2.0",
 ]
 
-[tool.setuptools]
-packages = ["stocks_fetch"]
-
-[tool.setuptools.package-data]
-stocks_fetch = []
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["stocks_fetch*"]
 
 [project.scripts]
-portfolio-analyzer = "stocks_fetch.server:main"
+stock-analyzer = "stocks_fetch.server:main"
 
 [project.optional-dependencies]
 dev = [
