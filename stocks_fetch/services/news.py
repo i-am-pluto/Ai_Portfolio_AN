@@ -12,9 +12,13 @@ def get_stock_news(symbol: str, count: int = 5) -> list[dict] | str:
 
     results = []
     for item in raw_news[:count]:
-        content = item.get("content", {})
-        provider = content.get("provider", {})
-        click_url = content.get("clickThroughUrl", {})
+        if not isinstance(item, dict):
+            continue
+        content = item.get("content") or {}
+        if not isinstance(content, dict):
+            continue
+        provider = content.get("provider") or {}
+        click_url = content.get("clickThroughUrl") or {}
         results.append({
             "title": content.get("title"),
             "publisher": provider.get("displayName"),

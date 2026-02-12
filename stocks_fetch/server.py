@@ -17,10 +17,12 @@ mcp = FastMCP(
 from stocks_fetch.sources.fundamentals import register as register_fundamentals
 from stocks_fetch.sources.corporate import register as register_corporate
 from stocks_fetch.sources.market_info import register as register_market_info
+from stocks_fetch.sources.technical import register as register_technical
 
 register_fundamentals(mcp)
 register_corporate(mcp)
 register_market_info(mcp)
+register_technical(mcp)
 
 def main():
     """Entry point for console script."""

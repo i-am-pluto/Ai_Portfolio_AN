@@ -30,7 +30,7 @@ def validate_symbol(symbol: str) -> str | None:
     """
     yahoo_sym = to_yahoo_symbol(symbol)
     ticker = yf.Ticker(yahoo_sym)
-    hist = ticker.history(period="5d")
+    hist = ticker.history(period="1mo")
     if hist is None or hist.empty:
         return (
             f"No data found for '{symbol}'. This may not be a valid NSE symbol "

@@ -1,152 +1,133 @@
-# AI Stock Analyzer - MCP Server
+# AI Stock Analyzer + Dual-MCP Portfolio Agent
 
-An **MCP (Model Context Protocol) server** providing analytical tools for Indian stocks — fundamentals, corporate actions, and news. Designed to work alongside **Zerodha Kite MCP** which handles portfolio data, real-time prices, and trading.
+This repository contains:
+- A **FastMCP stock-analyzer server** for Indian equities
+- A **LangGraph portfolio agent** that connects to both `kite` and `stock-analyzer`
 
-Built with **FastMCP**, **yfinance**, and **nselib**.
-
----
+The agent is login-first, strict read-only on Kite, and writes dated markdown reports.
 
 ## Architecture
 
-```
-.mcp.json                  # Dual-server config (Kite MCP + stock-analyzer)
+```text
+.mcp.json
 stocks_fetch/
-├── server.py              # FastMCP entry point (3 modules)
-├── __main__.py            # Module runner
+├── server.py                      # FastMCP stock-analyzer server
 ├── sources/
-│   ├── fundamentals.py    # PE, PB, ROE, financial statements, peer comparison
-│   ├── corporate.py       # Dividends, splits, NSE corporate actions
-│   └── market_info.py     # Stock news
-└── utils/
-    └── symbols.py         # NSE → Yahoo ticker mapping
+│   ├── fundamentals.py
+│   ├── corporate.py
+│   ├── market_info.py
+│   └── technical.py               # correlation/covariance MCP tool
+├── services/
+│   ├── fundamentals.py
+│   ├── corporate.py
+│   ├── news.py
+│   └── technical.py               # correlation/covariance computation
+└── agent/
+    ├── config.py
+    ├── mcp_client.py
+    ├── models/
+    │   ├── factory.py
+    │   ├── registry.py
+    │   └── providers/
+    │       ├── groq.py
+    │       └── xai.py
+    ├── state/
+    │   ├── schema.py
+    │   └── defaults.py
+    ├── tool_filter.py
+    ├── workflow/
+    │   ├── graph.py               # graph assembly only
+    │   ├── routing.py
+    │   ├── errors.py
+    │   ├── helpers/
+    │   └── nodes/                 # one file per node
+    ├── report_generator.py
+    ├── runner.py                  # portfolio-report CLI
+    └── prompts/system_portfolio_analyst.md
 ```
 
-### Dual MCP Setup
+## Dual MCP Setup
 
-| Server | Handles | Source |
-|--------|---------|--------|
-| **Kite MCP** (Zerodha) | Portfolio holdings, real-time prices, historical data, order management | `https://mcp.kite.trade/sse` |
-| **Stock Analyzer** (this) | Fundamentals, financial statements, corporate actions, news | Local FastMCP server |
-
----
-
-## Prerequisites
-
-- **Python 3.11+**
-- **uv** package manager — `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- **Node.js** — required for Kite MCP via `npx mcp-remote`
-- **Zerodha account** — for Kite MCP authentication
-- **Internet connection**
-
----
+| Server | Purpose |
+| --- | --- |
+| `kite` | Portfolio/account context, read-only market/account tools, login |
+| `stock-analyzer` | Fundamentals, corporate actions, news, correlation/covariance |
 
 ## Quick Start
 
-### 1. Install Dependencies
-
+1. Install dependencies:
 ```bash
-cd /Users/parikshit/Documents/code/Ai_Portfolio_AN
 uv sync
 ```
 
-### 2. Run the MCP Server
+2. Create local environment file:
+```bash
+cp .env.example .env
+```
 
+3. Edit `.env` and set your API key:
+- For Grok (xAI): set `LLM_PROVIDER=grok` and fill `GROK_API_KEY`
+- For Groq: set `LLM_PROVIDER=groq` and fill `GROQ_API_KEY`
+
+4. Run stock-analyzer MCP server:
 ```bash
 uv run python -m stocks_fetch
 ```
 
-### 3. Claude Code Integration
+5. Run portfolio agent (auto-analysis + conversational mode):
+```bash
+uv run portfolio-report
+```
+If Kite authentication is needed, the CLI will print a login URL, wait for you to complete browser login, and then continue analysis in the same session.
 
-The `.mcp.json` configures both servers:
-
-```json
-{
-  "mcpServers": {
-    "kite": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://mcp.kite.trade/sse"]
-    },
-    "stock-analyzer": {
-      "type": "stdio",
-      "command": "uv",
-      "args": ["run", "--project", "~/Documents/code/Ai_Portfolio_AN", "python", "-m", "stocks_fetch"]
-    }
-  }
-}
+6. Run one-shot mode:
+```bash
+uv run portfolio-report --one-shot
 ```
 
-Kite MCP authenticates via browser-based Zerodha 2FA — credentials never pass through the AI.
+## Environment Variables
 
----
+- `LLM_PROVIDER` (optional, default: `groq`; options: `groq`, `grok`, `xai`)
+- `GROK_API_KEY` or `XAI_API_KEY` (required when `LLM_PROVIDER=grok`/`xai`)
+- `GROK_MODEL` or `XAI_MODEL` (optional, default: `grok-2-latest`)
+- `XAI_BASE_URL` (optional, default: `https://api.x.ai/v1`)
+- `GROQ_API_KEY` (required when `LLM_PROVIDER=groq`)
+- `GROQ_MODEL` (optional, default: `llama-3.3-70b-versatile`)
+- `USE_KITE` (optional, default: `true`)
+- `KITE_SSE_URL` (optional, default: `https://mcp.kite.trade/sse`)
+- `CORRELATION_PERIOD` (optional, default: `1y`)
+- `CORRELATION_INTERVAL` (optional, default: `1d`)
+- `CORRELATION_RETURNS_TYPE` (optional, default: `simple`)
+- `PORTFOLIO_REPORT_DIR` (optional, default: `reports`)
 
-## Available Tools (6)
+## Stock Analyzer Tools (7)
 
-### Fundamentals (3 tools)
-- `get_fundamental_ratios(symbol)` — PE, PB, ROE, margins, leverage, growth metrics
-- `get_financial_statements(symbol, statement, quarterly)` — Income, balance sheet, or cashflow
-- `get_peer_comparison(symbols)` — Side-by-side comparison of up to 10 stocks
+- `get_fundamental_ratios(symbol)`
+- `get_financial_statements(symbol, statement, quarterly)`
+- `get_peer_comparison(symbols)`
+- `get_dividends_and_splits(symbol)`
+- `get_nse_corporate_actions(symbol, period)`
+- `get_stock_news(symbol, count)`
+- `get_stock_correlations(symbols, period, interval, returns_type, annualize_covariance)`
 
-### Corporate Actions (2 tools)
-- `get_dividends_and_splits(symbol)` — Dividend and stock split history
-- `get_nse_corporate_actions(symbol)` — Recent/upcoming NSE corporate actions
+## Safety Policy
 
-### News (1 tool)
-- `get_stock_news(symbol, count)` — Recent news articles from Yahoo Finance
+Kite is strict allowlist only:
+- login + read-only portfolio/account/market data tools
+- hard block for risky keywords: `buy`, `sell`, `place`, `modify`, `cancel`, `basket`, `gtt`, `exit`, `squareoff`, `convert`
 
-All tools accept **NSE symbols** (e.g., `RELIANCE`, `TCS`) — no `.NS` suffix needed.
+No order/trade mutation tools are executed by the agent.
 
----
+## Report Output
 
-## Development
+Reports are written as:
+- `reports/portfolio_analysis_YYYY-MM-DD.md`
 
-### Adding New Tools
-
-Each source module exports a `register(mcp)` function:
-
-```python
-# stocks_fetch/sources/example.py
-def register(mcp) -> None:
-    @mcp.tool(annotations={"readOnlyHint": True})
-    def my_tool(param: str) -> str:
-        """Description of what the tool does."""
-        return f"Result for {param}"
-```
-
-Then register in `server.py`:
-```python
-from stocks_fetch.sources.example import register as register_example
-register_example(mcp)
-```
-
-### Key Gotchas
-
-- **yfinance news API** returns nested structure: `[{id, content: {title, provider, ...}}]`
-- **Bank stocks** (e.g., HDFCBANK) may return `None` for `debt_to_equity`
-- **nselib** max available version is 2.4.2 (graceful fallback if unavailable)
-
----
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| `uv: command not found` | Ensure `~/.local/bin` is in PATH |
-| `npx: command not found` | Install Node.js from nodejs.org |
-| Kite MCP auth fails | Re-authenticate via browser; session may have expired |
-| yfinance timeouts | Check internet connection; APIs may have rate limits |
-| HDFCBANK returns `None` for D/E | Bank stocks calculate debt differently |
-
----
-
-## Resources
-
-- [Kite MCP - Zerodha](https://zerodha.com/z-connect/featured/connect-your-zerodha-account-to-ai-assistants-with-kite-mcp)
-- [FastMCP Documentation](https://mcp.run/)
-- [yfinance GitHub](https://github.com/ranaroussi/yfinance)
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-
----
-
-## License
-
-MIT
+Each report includes:
+- auth + tool status
+- holdings snapshot
+- per-symbol fundamentals/news/corporate notes
+- correlation matrix
+- covariance matrix
+- executive summary and detailed insights
+- warnings/errors
