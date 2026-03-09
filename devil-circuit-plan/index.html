@@ -185,17 +185,17 @@ const RACE_MORNING = [
   'ATTACK THE COURSE — YOU\'VE TRAINED FOR THIS 🔥',
 ];
 
-// ─── General Workout Default Plan ────────────────────────────────────────────
+// ─── General Workout Default Plan (4-Day Body Part Split) ────────────────────
 const DEFAULT_GYM_PLAN = [
   {
-    id: 'gym1', day: 'Mon', label: 'Push Day', emoji: '💪', color: '#e63946',
+    id: 'gym1', day: 'Day 1', label: 'Chest & Triceps', emoji: '💪', color: '#e63946',
     cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, moderate pace', maxDuration: '', maxSpeed: '' },
     exercises: [
-      { id: 'g1_1', name: 'Bench Press', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
-      { id: 'g1_2', name: 'Incline Dumbbell Press', detail: '3 × 10 reps', icon: '⬆️', maxWeight: '' },
-      { id: 'g1_3', name: 'Shoulder Press', detail: '4 × 10 reps', icon: '🎯', maxWeight: '' },
-      { id: 'g1_4', name: 'Tricep Pushdowns', detail: '3 × 12 reps', icon: '💪', maxWeight: '' },
-      { id: 'g1_5', name: 'Lateral Raises', detail: '3 × 15 reps', icon: '✋', maxWeight: '' },
+      { id: 'g1_1', name: 'Flat Barbell Bench Press', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
+      { id: 'g1_2', name: 'Incline Dumbbell Press', detail: '4 × 10 reps', icon: '⬆️', maxWeight: '' },
+      { id: 'g1_3', name: 'Cable Chest Flyes', detail: '3 × 12 reps', icon: '🦅', maxWeight: '' },
+      { id: 'g1_4', name: 'Close-Grip Bench Press', detail: '3 × 10 reps', icon: '💪', maxWeight: '' },
+      { id: 'g1_5', name: 'Overhead Tricep Extension', detail: '3 × 12 reps', icon: '🔱', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc1_1', name: 'Plank', detail: '3 × 45 sec', icon: '🎯', maxWeight: '' },
@@ -203,14 +203,14 @@ const DEFAULT_GYM_PLAN = [
     cardioEnd: { name: 'Treadmill Cool-down', detail: '10 min, easy pace', maxDuration: '', maxSpeed: '' },
   },
   {
-    id: 'gym2', day: 'Tue', label: 'Pull Day', emoji: '🔗', color: '#ff6b35',
+    id: 'gym2', day: 'Day 2', label: 'Back & Biceps', emoji: '🔗', color: '#ff6b35',
     cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, steady pace', maxDuration: '', maxSpeed: '' },
     exercises: [
       { id: 'g2_1', name: 'Deadlift', detail: '4 × 6 reps', icon: '🏋️', maxWeight: '' },
-      { id: 'g2_2', name: 'Pull-ups', detail: '4 × 8 reps', icon: '⬆️', maxWeight: '' },
-      { id: 'g2_3', name: 'Barbell Rows', detail: '4 × 10 reps', icon: '🔗', maxWeight: '' },
-      { id: 'g2_4', name: 'Face Pulls', detail: '3 × 15 reps', icon: '🎯', maxWeight: '' },
-      { id: 'g2_5', name: 'Bicep Curls', detail: '3 × 12 reps', icon: '💪', maxWeight: '' },
+      { id: 'g2_2', name: 'Weighted Pull-ups', detail: '4 × 8 reps', icon: '⬆️', maxWeight: '' },
+      { id: 'g2_3', name: 'Bent-Over Barbell Rows', detail: '4 × 10 reps', icon: '🔗', maxWeight: '' },
+      { id: 'g2_4', name: 'Seated Cable Rows', detail: '3 × 12 reps', icon: '🎯', maxWeight: '' },
+      { id: 'g2_5', name: 'Barbell Bicep Curls', detail: '3 × 12 reps', icon: '💪', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc2_1', name: 'Russian Twists', detail: '3 × 20 reps', icon: '🌀', maxWeight: '' },
@@ -218,35 +218,35 @@ const DEFAULT_GYM_PLAN = [
     cardioEnd: null,
   },
   {
-    id: 'gym3', day: 'Thu', label: 'Legs Day', emoji: '🦵', color: '#8b5cf6',
-    cardioStart: null,
+    id: 'gym3', day: 'Day 3', label: 'Shoulders & Arms', emoji: '🎯', color: '#8b5cf6',
+    cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, light jog', maxDuration: '', maxSpeed: '' },
     exercises: [
-      { id: 'g3_1', name: 'Squats', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
-      { id: 'g3_2', name: 'Leg Press', detail: '4 × 10 reps', icon: '⬇️', maxWeight: '' },
-      { id: 'g3_3', name: 'Romanian Deadlift', detail: '3 × 10 reps', icon: '🦵', maxWeight: '' },
-      { id: 'g3_4', name: 'Leg Curls', detail: '3 × 12 reps', icon: '🎯', maxWeight: '' },
-      { id: 'g3_5', name: 'Calf Raises', detail: '4 × 15 reps', icon: '👣', maxWeight: '' },
+      { id: 'g3_1', name: 'Overhead Barbell Press', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
+      { id: 'g3_2', name: 'Dumbbell Lateral Raises', detail: '4 × 12 reps', icon: '✋', maxWeight: '' },
+      { id: 'g3_3', name: 'Face Pulls', detail: '3 × 15 reps', icon: '🎯', maxWeight: '' },
+      { id: 'g3_4', name: 'Hammer Curls', detail: '3 × 12 reps', icon: '💪', maxWeight: '' },
+      { id: 'g3_5', name: 'Skull Crushers', detail: '3 × 12 reps', icon: '🔱', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc3_1', name: 'Hanging Leg Raises', detail: '3 × 15 reps', icon: '🦵', maxWeight: '' },
     ],
-    cardioEnd: { name: 'Treadmill Cool-down', detail: '15 min incline walk', maxDuration: '', maxSpeed: '' },
+    cardioEnd: null,
   },
   {
-    id: 'gym4', day: 'Fri', label: 'Full Body + Core', emoji: '🔥', color: '#f59e0b',
-    cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, increasing pace', maxDuration: '', maxSpeed: '' },
+    id: 'gym4', day: 'Day 4', label: 'Legs & Core', emoji: '🦵', color: '#f59e0b',
+    cardioStart: null,
     exercises: [
-      { id: 'g4_1', name: 'Clean & Press', detail: '4 × 6 reps', icon: '🏋️', maxWeight: '' },
-      { id: 'g4_2', name: 'Dumbbell Lunges', detail: '3 × 12 each leg', icon: '🦵', maxWeight: '' },
-      { id: 'g4_3', name: 'Cable Rows', detail: '4 × 10 reps', icon: '🔗', maxWeight: '' },
-      { id: 'g4_4', name: 'Dips', detail: '3 × 12 reps', icon: '⬇️', maxWeight: '' },
-      { id: 'g4_5', name: 'Arnold Press', detail: '3 × 10 reps', icon: '💪', maxWeight: '' },
+      { id: 'g4_1', name: 'Barbell Back Squats', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
+      { id: 'g4_2', name: 'Leg Press', detail: '4 × 10 reps', icon: '⬇️', maxWeight: '' },
+      { id: 'g4_3', name: 'Romanian Deadlift', detail: '3 × 10 reps', icon: '🦵', maxWeight: '' },
+      { id: 'g4_4', name: 'Walking Lunges', detail: '3 × 12 each leg', icon: '🚶', maxWeight: '' },
+      { id: 'g4_5', name: 'Standing Calf Raises', detail: '4 × 15 reps', icon: '👣', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc4_1', name: 'Cable Woodchoppers', detail: '3 × 12 each side', icon: '🌀', maxWeight: '' },
       { id: 'gc4_2', name: 'Ab Wheel Rollout', detail: '3 × 10 reps', icon: '⭕', maxWeight: '' },
     ],
-    cardioEnd: { name: 'Treadmill HIIT', detail: '15 min intervals', maxDuration: '', maxSpeed: '' },
+    cardioEnd: { name: 'Treadmill Cool-down', detail: '15 min incline walk', maxDuration: '', maxSpeed: '' },
   },
 ];
 
@@ -262,8 +262,12 @@ function makeGymDayState(gymDay) {
 
 function makeGymInitialState() {
   const days = {};
-  DEFAULT_GYM_PLAN.forEach(gd => { days[gd.id] = makeGymDayState(gd); });
-  return { days };
+  const dayNames = {};
+  DEFAULT_GYM_PLAN.forEach(gd => {
+    days[gd.id] = makeGymDayState(gd);
+    dayNames[gd.id] = gd.day;
+  });
+  return { days, dayNames: dayNames, calendar: {} };
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
@@ -428,7 +432,11 @@ async function loginUser(username) {
   const existing = await loadBlob(blobId);
   if (!existing) return { blobId, data: init, isNew: false };
   const mergedGym = existing.gymWorkout
-    ? { days: { ...init.gymWorkout.days, ...existing.gymWorkout.days } }
+    ? {
+        days: { ...init.gymWorkout.days, ...existing.gymWorkout.days },
+        dayNames: { ...init.gymWorkout.dayNames, ...(existing.gymWorkout.dayNames || {}) },
+        calendar: { ...(existing.gymWorkout.calendar || {}) },
+      }
     : init.gymWorkout;
   const merged = { ...init, ...existing, progress: { ...init.progress, ...existing.progress }, gear: { ...init.gear, ...existing.gear }, gymWorkout: mergedGym };
   return { blobId, data: merged, isNew: false };
@@ -843,16 +851,151 @@ function GymDayCard({ gymDay, dayState, onToggleEx, onToggleCore, onToggleCardio
   );
 }
 
+// ─── Workout Calendar Component ────────────────────────────────────────────────
+function WorkoutCalendar({ calendar, onToggleDate, gymWorkout }) {
+  const [viewMonth, setViewMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
+
+  const daysInMonth = new Date(viewMonth.year, viewMonth.month + 1, 0).getDate();
+  const firstDayOfWeek = new Date(viewMonth.year, viewMonth.month, 1).getDay();
+  const monthName = new Date(viewMonth.year, viewMonth.month).toLocaleString('default', { month: 'long', year: 'numeric' });
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const prevMonth = () => setViewMonth(v => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 });
+  const nextMonth = () => setViewMonth(v => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 });
+
+  const calData = calendar || {};
+  const dayNames = gymWorkout.dayNames || {};
+
+  // Count workouts this month
+  const monthWorkouts = Object.keys(calData).filter(d => {
+    const [y, m] = d.split('-').map(Number);
+    return y === viewMonth.year && m === viewMonth.month + 1 && calData[d];
+  }).length;
+
+  // Current streak
+  let streak = 0;
+  const checkDate = new Date(today);
+  while (true) {
+    const ds = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+    if (calData[ds]) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
+    else break;
+  }
+
+  const cells = [];
+  // Empty cells for days before the 1st
+  for (let i = 0; i < firstDayOfWeek; i++) cells.push(<div key={`e${i}`} />);
+  // Day cells
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${viewMonth.year}-${String(viewMonth.month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isToday = dateStr === todayStr;
+    const entry = calData[dateStr];
+    const worked = !!entry;
+    const gymDayId = entry?.gymDayId;
+    const gymPlan = gymDayId ? DEFAULT_GYM_PLAN.find(g => g.id === gymDayId) : null;
+    const customName = gymDayId && dayNames[gymDayId] ? dayNames[gymDayId] : null;
+
+    cells.push(
+      <button key={d} onClick={() => onToggleDate(dateStr)}
+        title={worked ? (customName || gymPlan?.label || 'Workout done') : 'Mark as workout day'}
+        className={`relative aspect-square rounded-lg text-xs font-semibold transition-all flex flex-col items-center justify-center gap-0.5 ${
+          worked
+            ? 'bg-green-900/40 border border-green-700/50 text-green-300'
+            : isToday
+              ? 'bg-red-950/40 border border-red-700/40 text-white'
+              : 'bg-white/2 border border-gray-800/50 text-gray-500 hover:bg-white/5 hover:border-gray-600'
+        }`}>
+        <span className={isToday ? 'font-bold' : ''}>{d}</span>
+        {worked && <span className="text-xs leading-none">{gymPlan?.emoji || '✅'}</span>}
+      </button>
+    );
+  }
+
+  return (
+    <div className="bg-white/3 border border-gray-800 rounded-2xl p-5 mb-5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="bebas text-2xl text-white leading-none">Workout Calendar</h3>
+          <p className="text-xs text-gray-500 mt-1">Tap a date to log your workout</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="text-xs text-gray-500">Streak</div>
+            <div className="bebas text-lg text-orange-400 leading-none">{streak}d 🔥</div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-gray-500">This month</div>
+            <div className="bebas text-lg text-green-400 leading-none">{monthWorkouts}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={prevMonth} className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">←</button>
+        <span className="bebas text-lg text-white tracking-wide">{monthName}</span>
+        <button onClick={nextMonth} className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">→</button>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(wd => (
+          <div key={wd} className="text-center text-xs text-gray-600 font-semibold py-1">{wd}</div>
+        ))}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {cells}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 mt-3 text-xs text-gray-600">
+        <span><span className="inline-block w-2.5 h-2.5 rounded bg-green-800 mr-1"></span>Worked out</span>
+        <span><span className="inline-block w-2.5 h-2.5 rounded bg-red-900 mr-1"></span>Today</span>
+      </div>
+    </div>
+  );
+}
+
 function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
   const [activeGymDay, setActiveGymDay] = useState('gym1');
+  const [editingDayName, setEditingDayName] = useState(null);
   const currentGymPlan = DEFAULT_GYM_PLAN.find(g => g.id === activeGymDay);
   const currentDayState = (gymWorkout.days && gymWorkout.days[activeGymDay]) || makeGymDayState(currentGymPlan);
+
+  const dayNames = gymWorkout.dayNames || {};
+  const getDayName = (id) => dayNames[id] || DEFAULT_GYM_PLAN.find(g => g.id === id)?.day || id;
 
   const updateDay = (updater) => {
     onUpdate(prev => {
       const days = prev.days || {};
       const day = days[activeGymDay] || makeGymDayState(currentGymPlan);
       return { ...prev, days: { ...days, [activeGymDay]: updater(day) } };
+    });
+  };
+
+  const setDayName = (id, name) => {
+    onUpdate(prev => ({
+      ...prev,
+      dayNames: { ...(prev.dayNames || {}), [id]: name }
+    }));
+  };
+
+  const toggleCalendarDate = (dateStr) => {
+    onUpdate(prev => {
+      const cal = { ...(prev.calendar || {}) };
+      if (cal[dateStr]) {
+        delete cal[dateStr];
+      } else {
+        // Cycle through gym days: assign the active gym day
+        cal[dateStr] = { gymDayId: activeGymDay, timestamp: Date.now() };
+      }
+      return { ...prev, calendar: cal };
     });
   };
 
@@ -907,17 +1050,24 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl" style={{background:'linear-gradient(135deg,#e63946,#ff6b35)'}}>🏋️</div>
         <div>
           <h2 className="bebas text-3xl text-white leading-none">General Workout</h2>
-          <p className="text-xs text-gray-500 mt-0.5">4-Day Weekly Gym Plan · Fully Customizable · Auto-saved</p>
+          <p className="text-xs text-gray-500 mt-0.5">4-Day Body Part Split · Tap day names to rename · Auto-saved</p>
         </div>
       </div>
+
+      {/* Calendar */}
+      <WorkoutCalendar
+        calendar={gymWorkout.calendar || {}}
+        onToggleDate={toggleCalendarDate}
+        gymWorkout={gymWorkout}
+      />
 
       {/* Tip */}
       <div className="bg-white/3 border border-gray-800 rounded-xl px-4 py-3 mb-5 text-xs text-gray-400 flex items-start gap-2">
         <span>💡</span>
-        <span>Tap any exercise name or detail to edit it. Tap the PR field to log your best weight. Use + Add to add exercises, × to remove.</span>
+        <span>Tap day names below to rename them. Tap exercises to edit. Use the calendar above to track workout days.</span>
       </div>
 
-      {/* Day Tabs */}
+      {/* Day Tabs with editable names */}
       <div className="grid grid-cols-4 gap-2 mb-5">
         {DEFAULT_GYM_PLAN.map(gd => {
           const ds = gymWorkout.days?.[gd.id];
@@ -925,15 +1075,29 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
           const done = ds ? ds.exercises.filter(e => e.checked).length + ds.coreExercises.filter(e => e.checked).length + (ds.cardioStart?.checked ? 1 : 0) + (ds.cardioEnd?.checked ? 1 : 0) : 0;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const isActive = activeGymDay === gd.id;
+          const displayName = getDayName(gd.id);
+          const isEditing = editingDayName === gd.id;
           return (
-            <button key={gd.id} onClick={() => setActiveGymDay(gd.id)}
-              className={`flex flex-col items-center px-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${isActive ? 'tab-active border-transparent text-white shadow-lg glow-red' : 'border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
-              <span className="text-base mb-0.5">{gd.emoji}</span>
-              <span className="bebas text-sm leading-none">{gd.day}</span>
-              <span className="text-xs mt-0.5" style={{color: isActive ? 'rgba(255,255,255,0.7)' : pct === 100 ? '#4ade80' : '#555'}}>
-                {pct === 100 ? '✅' : `${pct}%`}
-              </span>
-            </button>
+            <div key={gd.id} className="flex flex-col">
+              <button onClick={() => setActiveGymDay(gd.id)}
+                className={`flex flex-col items-center px-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${isActive ? 'tab-active border-transparent text-white shadow-lg glow-red' : 'border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
+                <span className="text-base mb-0.5">{gd.emoji}</span>
+                {isEditing ? (
+                  <input type="text" className="w-full bg-transparent text-center text-xs font-bold text-white outline-none border-b border-red-500"
+                    autoFocus defaultValue={displayName}
+                    onClick={e => e.stopPropagation()}
+                    onBlur={e => { setDayName(gd.id, e.target.value || gd.day); setEditingDayName(null); }}
+                    onKeyDown={e => { if (e.key === 'Enter') { setDayName(gd.id, e.target.value || gd.day); setEditingDayName(null); } }} />
+                ) : (
+                  <span className="bebas text-sm leading-none cursor-pointer hover:text-red-300"
+                    onClick={e => { e.stopPropagation(); setEditingDayName(gd.id); }}
+                    title="Tap to rename">{displayName}</span>
+                )}
+                <span className="text-xs mt-0.5" style={{color: isActive ? 'rgba(255,255,255,0.7)' : pct === 100 ? '#4ade80' : '#555'}}>
+                  {pct === 100 ? '✅' : `${pct}%`}
+                </span>
+              </button>
+            </div>
           );
         })}
       </div>
@@ -941,7 +1105,7 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
       {/* Active Day Card */}
       <div key={activeGymDay} className="bg-white/3 border border-gray-800 rounded-2xl p-5">
         <GymDayCard
-          gymDay={currentGymPlan}
+          gymDay={{...currentGymPlan, day: getDayName(currentGymPlan.id)}}
           dayState={currentDayState}
           onToggleEx={toggleEx}
           onToggleCore={toggleCore}
