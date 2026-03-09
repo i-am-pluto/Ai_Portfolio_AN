@@ -185,17 +185,19 @@ const RACE_MORNING = [
   'ATTACK THE COURSE — YOU\'VE TRAINED FOR THIS 🔥',
 ];
 
-// ─── General Workout Default Plan (4-Day Body Part Split) ────────────────────
+// ─── General Workout Default Plan (7 Body Parts · 4 Days/Week) ───────────────
+// One body part per day. Run 4 of these per week — full coverage in ~2 weeks.
 const DEFAULT_GYM_PLAN = [
   {
-    id: 'gym1', day: 'Day 1', label: 'Chest & Triceps', emoji: '💪', color: '#e63946',
+    id: 'gym1', day: 'Day 1', label: 'Chest', emoji: '💪', color: '#e63946',
+    spotifyMood: 'chest workout pump',
     cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, moderate pace', maxDuration: '', maxSpeed: '' },
     exercises: [
       { id: 'g1_1', name: 'Flat Barbell Bench Press', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
       { id: 'g1_2', name: 'Incline Dumbbell Press', detail: '4 × 10 reps', icon: '⬆️', maxWeight: '' },
-      { id: 'g1_3', name: 'Cable Chest Flyes', detail: '3 × 12 reps', icon: '🦅', maxWeight: '' },
-      { id: 'g1_4', name: 'Close-Grip Bench Press', detail: '3 × 10 reps', icon: '💪', maxWeight: '' },
-      { id: 'g1_5', name: 'Overhead Tricep Extension', detail: '3 × 12 reps', icon: '🔱', maxWeight: '' },
+      { id: 'g1_3', name: 'Decline Bench Press', detail: '3 × 10 reps', icon: '⬇️', maxWeight: '' },
+      { id: 'g1_4', name: 'Cable Chest Flyes', detail: '3 × 12 reps', icon: '🦅', maxWeight: '' },
+      { id: 'g1_5', name: 'Chest Dips (weighted)', detail: '3 × max reps', icon: '🔽', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc1_1', name: 'Plank', detail: '3 × 45 sec', icon: '🎯', maxWeight: '' },
@@ -203,14 +205,15 @@ const DEFAULT_GYM_PLAN = [
     cardioEnd: { name: 'Treadmill Cool-down', detail: '10 min, easy pace', maxDuration: '', maxSpeed: '' },
   },
   {
-    id: 'gym2', day: 'Day 2', label: 'Back & Biceps', emoji: '🔗', color: '#ff6b35',
-    cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, steady pace', maxDuration: '', maxSpeed: '' },
+    id: 'gym2', day: 'Day 2', label: 'Back', emoji: '🔗', color: '#ff6b35',
+    spotifyMood: 'back day heavy lifting',
+    cardioStart: { name: 'Rowing Machine Warm-up', detail: '10 min, steady pace', maxDuration: '', maxSpeed: '' },
     exercises: [
       { id: 'g2_1', name: 'Deadlift', detail: '4 × 6 reps', icon: '🏋️', maxWeight: '' },
       { id: 'g2_2', name: 'Weighted Pull-ups', detail: '4 × 8 reps', icon: '⬆️', maxWeight: '' },
       { id: 'g2_3', name: 'Bent-Over Barbell Rows', detail: '4 × 10 reps', icon: '🔗', maxWeight: '' },
       { id: 'g2_4', name: 'Seated Cable Rows', detail: '3 × 12 reps', icon: '🎯', maxWeight: '' },
-      { id: 'g2_5', name: 'Barbell Bicep Curls', detail: '3 × 12 reps', icon: '💪', maxWeight: '' },
+      { id: 'g2_5', name: 'Lat Pulldowns', detail: '3 × 12 reps', icon: '⬇️', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc2_1', name: 'Russian Twists', detail: '3 × 20 reps', icon: '🌀', maxWeight: '' },
@@ -218,14 +221,15 @@ const DEFAULT_GYM_PLAN = [
     cardioEnd: null,
   },
   {
-    id: 'gym3', day: 'Day 3', label: 'Shoulders & Arms', emoji: '🎯', color: '#8b5cf6',
+    id: 'gym3', day: 'Day 3', label: 'Shoulders', emoji: '🎯', color: '#8b5cf6',
+    spotifyMood: 'shoulder day gym motivation',
     cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, light jog', maxDuration: '', maxSpeed: '' },
     exercises: [
       { id: 'g3_1', name: 'Overhead Barbell Press', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
       { id: 'g3_2', name: 'Dumbbell Lateral Raises', detail: '4 × 12 reps', icon: '✋', maxWeight: '' },
       { id: 'g3_3', name: 'Face Pulls', detail: '3 × 15 reps', icon: '🎯', maxWeight: '' },
-      { id: 'g3_4', name: 'Hammer Curls', detail: '3 × 12 reps', icon: '💪', maxWeight: '' },
-      { id: 'g3_5', name: 'Skull Crushers', detail: '3 × 12 reps', icon: '🔱', maxWeight: '' },
+      { id: 'g3_4', name: 'Arnold Press', detail: '3 × 10 reps', icon: '💪', maxWeight: '' },
+      { id: 'g3_5', name: 'Front Raises', detail: '3 × 12 reps', icon: '⬆️', maxWeight: '' },
     ],
     coreExercises: [
       { id: 'gc3_1', name: 'Hanging Leg Raises', detail: '3 × 15 reps', icon: '🦵', maxWeight: '' },
@@ -233,7 +237,8 @@ const DEFAULT_GYM_PLAN = [
     cardioEnd: null,
   },
   {
-    id: 'gym4', day: 'Day 4', label: 'Legs & Core', emoji: '🦵', color: '#f59e0b',
+    id: 'gym4', day: 'Day 4', label: 'Legs', emoji: '🦵', color: '#f59e0b',
+    spotifyMood: 'leg day workout grind',
     cardioStart: null,
     exercises: [
       { id: 'g4_1', name: 'Barbell Back Squats', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
@@ -244,11 +249,222 @@ const DEFAULT_GYM_PLAN = [
     ],
     coreExercises: [
       { id: 'gc4_1', name: 'Cable Woodchoppers', detail: '3 × 12 each side', icon: '🌀', maxWeight: '' },
-      { id: 'gc4_2', name: 'Ab Wheel Rollout', detail: '3 × 10 reps', icon: '⭕', maxWeight: '' },
     ],
     cardioEnd: { name: 'Treadmill Cool-down', detail: '15 min incline walk', maxDuration: '', maxSpeed: '' },
   },
+  {
+    id: 'gym5', day: 'Day 5', label: 'Biceps', emoji: '🦾', color: '#06b6d4',
+    spotifyMood: 'bicep pump workout playlist',
+    cardioStart: { name: 'Jump Rope Warm-up', detail: '8 min', maxDuration: '', maxSpeed: '' },
+    exercises: [
+      { id: 'g5_1', name: 'Barbell Bicep Curls', detail: '4 × 10 reps', icon: '💪', maxWeight: '' },
+      { id: 'g5_2', name: 'Incline Dumbbell Curls', detail: '3 × 12 reps', icon: '⬆️', maxWeight: '' },
+      { id: 'g5_3', name: 'Hammer Curls', detail: '3 × 12 reps', icon: '🔨', maxWeight: '' },
+      { id: 'g5_4', name: 'Concentration Curls', detail: '3 × 10 each arm', icon: '🎯', maxWeight: '' },
+      { id: 'g5_5', name: 'Cable Curls', detail: '3 × 15 reps', icon: '🔗', maxWeight: '' },
+    ],
+    coreExercises: [
+      { id: 'gc5_1', name: 'Chin-ups', detail: '3 × max reps', icon: '⬆️', maxWeight: '' },
+    ],
+    cardioEnd: null,
+  },
+  {
+    id: 'gym6', day: 'Day 6', label: 'Triceps', emoji: '🔱', color: '#10b981',
+    spotifyMood: 'tricep workout gym banger',
+    cardioStart: { name: 'Jump Rope Warm-up', detail: '8 min', maxDuration: '', maxSpeed: '' },
+    exercises: [
+      { id: 'g6_1', name: 'Close-Grip Bench Press', detail: '4 × 8 reps', icon: '🏋️', maxWeight: '' },
+      { id: 'g6_2', name: 'Skull Crushers', detail: '3 × 12 reps', icon: '🔱', maxWeight: '' },
+      { id: 'g6_3', name: 'Overhead Tricep Extension', detail: '3 × 12 reps', icon: '⬆️', maxWeight: '' },
+      { id: 'g6_4', name: 'Cable Tricep Pushdown', detail: '3 × 15 reps', icon: '⬇️', maxWeight: '' },
+      { id: 'g6_5', name: 'Tricep Dips', detail: '3 × max reps', icon: '🔽', maxWeight: '' },
+    ],
+    coreExercises: [
+      { id: 'gc6_1', name: 'Diamond Push-ups', detail: '3 × 15 reps', icon: '💎', maxWeight: '' },
+    ],
+    cardioEnd: null,
+  },
+  {
+    id: 'gym7', day: 'Day 7', label: 'Core & Abs', emoji: '🌀', color: '#f97316',
+    spotifyMood: 'core abs workout focus',
+    cardioStart: { name: 'Treadmill Warm-up', detail: '10 min, light jog', maxDuration: '', maxSpeed: '' },
+    exercises: [
+      { id: 'g7_1', name: 'Cable Woodchoppers', detail: '4 × 12 each side', icon: '🌀', maxWeight: '' },
+      { id: 'g7_2', name: 'Ab Wheel Rollout', detail: '4 × 10 reps', icon: '⭕', maxWeight: '' },
+      { id: 'g7_3', name: 'Hanging Leg Raises', detail: '4 × 15 reps', icon: '🦵', maxWeight: '' },
+      { id: 'g7_4', name: 'Cable Crunches', detail: '3 × 20 reps', icon: '🎯', maxWeight: '' },
+      { id: 'g7_5', name: 'Dragon Flags', detail: '3 × 8 reps', icon: '🐉', maxWeight: '' },
+    ],
+    coreExercises: [
+      { id: 'gc7_1', name: 'Plank Hold', detail: '5 × 60 sec', icon: '🎯', maxWeight: '' },
+      { id: 'gc7_2', name: 'Russian Twists', detail: '3 × 25 reps', icon: '🌀', maxWeight: '' },
+    ],
+    cardioEnd: { name: 'Treadmill Cool-down', detail: '10 min easy walk', maxDuration: '', maxSpeed: '' },
+  },
 ];
+
+// ─── Spotify Playlist Recommendations per body part ──────────────────────────
+const SPOTIFY_RECS = {
+  gym1: {
+    label: 'Chest Day',
+    playlists: [
+      { name: 'Beast Mode', query: 'beast mode workout', desc: 'Heavy hitting bangers for max lifts' },
+      { name: 'Chest Day Pump', query: 'chest day pump workout', desc: 'High energy chest session' },
+      { name: 'Hip Hop Gym', query: 'hip hop workout gym', desc: 'Rap & trap for pushing plates' },
+      { name: 'Metal Workout', query: 'metal workout gym', desc: 'Aggressive metal for heavy pressing' },
+    ],
+  },
+  gym2: {
+    label: 'Back Day',
+    playlists: [
+      { name: 'Heavy Lifts', query: 'heavy lifting workout music', desc: 'Power tracks for deadlift PRs' },
+      { name: 'Back Day Fire', query: 'back day workout playlist', desc: 'Pull session anthems' },
+      { name: 'EDM Gym', query: 'edm workout gym', desc: 'Electronic beats for long sets' },
+      { name: 'Power Training', query: 'power training workout', desc: 'Strength-focused soundtrack' },
+    ],
+  },
+  gym3: {
+    label: 'Shoulder Day',
+    playlists: [
+      { name: 'Shoulder Grind', query: 'shoulder workout playlist', desc: 'Push through the burn' },
+      { name: 'Motivation Gym', query: 'gym motivation music 2025', desc: 'Get locked in' },
+      { name: 'Trap Workout', query: 'trap workout gym', desc: 'Heavy trap bangers' },
+      { name: 'Rock Workout', query: 'rock workout gym classic', desc: 'Classic rock for pressing' },
+    ],
+  },
+  gym4: {
+    label: 'Leg Day',
+    playlists: [
+      { name: 'Leg Day Suffering', query: 'leg day workout motivation', desc: 'Nobody skips leg day with these' },
+      { name: 'High Energy Gym', query: 'high energy workout playlist', desc: 'Keeps your legs moving' },
+      { name: 'EDM Legs', query: 'edm gym legs workout', desc: 'BPM matched for squats' },
+      { name: 'Hard Workout', query: 'hard workout music gym', desc: 'For when legs want to quit' },
+    ],
+  },
+  gym5: {
+    label: 'Bicep Day',
+    playlists: [
+      { name: 'Bicep Pump', query: 'bicep pump workout playlist', desc: 'Arms workout bangers' },
+      { name: 'Old School Gym', query: 'old school gym workout', desc: 'Classic pump tunes' },
+      { name: 'R&B Workout', query: 'rnb workout gym smooth', desc: 'Smooth vibes for curls' },
+      { name: 'Hype Gym', query: 'hype workout gym 2025', desc: 'Latest gym hype tracks' },
+    ],
+  },
+  gym6: {
+    label: 'Tricep Day',
+    playlists: [
+      { name: 'Tricep Banger', query: 'tricep workout gym banger', desc: 'Push those extensions' },
+      { name: 'Rap Gym', query: 'rap workout gym playlist', desc: 'Bars for your tris' },
+      { name: 'Pump Up', query: 'pump up workout gym', desc: 'Pre-workout in playlist form' },
+      { name: 'Dark Techno Gym', query: 'dark techno workout gym', desc: 'Underground energy' },
+    ],
+  },
+  gym7: {
+    label: 'Core Day',
+    playlists: [
+      { name: 'Core Focus', query: 'core workout focus music', desc: 'Lock in for abs session' },
+      { name: 'Ab Workout', query: 'ab workout music playlist', desc: 'Grind through every set' },
+      { name: 'Chill Gym', query: 'chill gym workout lo-fi', desc: 'Lo-fi vibes for core work' },
+      { name: 'Intense Core', query: 'intense core workout', desc: 'No mercy for your abs' },
+    ],
+  },
+};
+
+function SpotifySection({ gymDayId, spotifyUser, onSetSpotifyUser }) {
+  const [inputVal, setInputVal] = useState(spotifyUser || '');
+  const [editing, setEditing] = useState(false);
+  const recs = SPOTIFY_RECS[gymDayId] || SPOTIFY_RECS['gym1'];
+
+  const spotifySearchUrl = (query) =>
+    `https://open.spotify.com/search/${encodeURIComponent(query)}/playlists`;
+
+  const spotifyProfileUrl = spotifyUser
+    ? `https://open.spotify.com/user/${spotifyUser.replace(/^.*open\.spotify\.com\/user\//, '').replace(/\?.*/, '')}`
+    : null;
+
+  return (
+    <div className="mt-5 rounded-2xl border overflow-hidden" style={{borderColor:'rgba(30,215,96,0.25)'}}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3" style={{background:'rgba(30,215,96,0.08)'}}>
+        <div className="flex items-center gap-2.5">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#1DB954">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+          </svg>
+          <span className="font-bold text-sm" style={{color:'#1DB954'}}>Spotify — Playlist Recs</span>
+          <span className="text-xs text-gray-600">for {recs.label}</span>
+        </div>
+        {spotifyProfileUrl && (
+          <a href={spotifyProfileUrl} target="_blank" rel="noopener noreferrer"
+            className="text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1"
+            style={{background:'rgba(30,215,96,0.15)',color:'#1DB954',border:'1px solid rgba(30,215,96,0.3)'}}>
+            <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block"></span> Connected
+          </a>
+        )}
+      </div>
+
+      <div className="px-4 py-4 space-y-4">
+        {/* Spotify account link */}
+        <div className="flex items-center gap-2">
+          {editing ? (
+            <>
+              <input type="text" className="flex-1 bg-white/5 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-600 outline-none"
+                style={{borderColor:'rgba(30,215,96,0.4)'}}
+                autoFocus value={inputVal}
+                onChange={e => setInputVal(e.target.value)}
+                placeholder="Your Spotify username or profile URL"
+                onKeyDown={e => { if (e.key === 'Enter') { onSetSpotifyUser(inputVal.trim()); setEditing(false); } }}
+              />
+              <button onClick={() => { onSetSpotifyUser(inputVal.trim()); setEditing(false); }}
+                className="text-xs px-3 py-1.5 rounded-lg font-semibold text-black"
+                style={{background:'#1DB954'}}>Save</button>
+              <button onClick={() => setEditing(false)} className="text-xs px-2.5 py-1.5 rounded-lg text-gray-500 border border-gray-700">✕</button>
+            </>
+          ) : (
+            <>
+              <div className="flex-1 text-xs text-gray-500 truncate">
+                {spotifyUser ? `🎵 ${spotifyUser}` : 'Link your Spotify to open your profile directly'}
+              </div>
+              <button onClick={() => setEditing(true)}
+                className="text-xs px-3 py-1.5 rounded-lg font-semibold border transition-colors"
+                style={{color:'#1DB954',borderColor:'rgba(30,215,96,0.3)',background:'rgba(30,215,96,0.08)'}}>
+                {spotifyUser ? 'Edit' : '+ Link Spotify'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Playlist recommendations */}
+        <div>
+          <div className="text-xs text-gray-600 uppercase tracking-wider mb-2">Recommended Playlists</div>
+          <div className="grid grid-cols-2 gap-2">
+            {recs.playlists.map((pl, i) => (
+              <a key={i} href={spotifySearchUrl(pl.query)} target="_blank" rel="noopener noreferrer"
+                className="flex items-start gap-2 p-2.5 rounded-xl border transition-all hover:scale-[1.02]"
+                style={{background:'rgba(30,215,96,0.05)',borderColor:'rgba(30,215,96,0.15)'}}>
+                <span className="text-lg flex-shrink-0" style={{marginTop:'1px'}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954" style={{opacity:0.8}}>
+                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                  </svg>
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-white truncate">{pl.name}</div>
+                  <div className="text-xs text-gray-600 mt-0.5 leading-snug">{pl.desc}</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick open Spotify */}
+        <a href="https://open.spotify.com" target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-semibold transition-colors"
+          style={{background:'rgba(30,215,96,0.1)',color:'#1DB954',border:'1px solid rgba(30,215,96,0.2)'}}>
+          Open Spotify →
+        </a>
+      </div>
+    </div>
+  );
+}
 
 function makeGymDayState(gymDay) {
   return {
@@ -267,7 +483,7 @@ function makeGymInitialState() {
     days[gd.id] = makeGymDayState(gd);
     dayNames[gd.id] = gd.day;
   });
-  return { days, dayNames: dayNames, calendar: {} };
+  return { days, dayNames: dayNames, calendar: {}, spotifyUser: '' };
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
@@ -436,6 +652,7 @@ async function loginUser(username) {
         days: { ...init.gymWorkout.days, ...existing.gymWorkout.days },
         dayNames: { ...init.gymWorkout.dayNames, ...(existing.gymWorkout.dayNames || {}) },
         calendar: { ...(existing.gymWorkout.calendar || {}) },
+        spotifyUser: existing.gymWorkout.spotifyUser || '',
       }
     : init.gymWorkout;
   const merged = { ...init, ...existing, progress: { ...init.progress, ...existing.progress }, gear: { ...init.gear, ...existing.gear }, gymWorkout: mergedGym };
@@ -1043,6 +1260,10 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
   const removeCore = (i) => updateDay(d => ({ ...d, coreExercises: d.coreExercises.filter((_, idx) => idx !== i) }));
   const setNote = (note) => updateDay(d => ({ ...d, note }));
 
+  const setSpotifyUser = (val) => {
+    onUpdate(prev => ({ ...prev, spotifyUser: val }));
+  };
+
   return (
     <div className="slide-in">
       {/* Section Header */}
@@ -1050,7 +1271,7 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl" style={{background:'linear-gradient(135deg,#e63946,#ff6b35)'}}>🏋️</div>
         <div>
           <h2 className="bebas text-3xl text-white leading-none">General Workout</h2>
-          <p className="text-xs text-gray-500 mt-0.5">4-Day Body Part Split · Tap day names to rename · Auto-saved</p>
+          <p className="text-xs text-gray-500 mt-0.5">7 Body Parts · 4 Days/Week · Full coverage in ~2 weeks · Auto-saved</p>
         </div>
       </div>
 
@@ -1068,7 +1289,7 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
       </div>
 
       {/* Day Tabs with editable names */}
-      <div className="grid grid-cols-4 gap-2 mb-5">
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-1" style={{scrollbarWidth:'none'}}>
         {DEFAULT_GYM_PLAN.map(gd => {
           const ds = gymWorkout.days?.[gd.id];
           const total = ds ? ds.exercises.length + ds.coreExercises.length + (ds.cardioStart ? 1 : 0) + (ds.cardioEnd ? 1 : 0) : 0;
@@ -1078,8 +1299,9 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
           const displayName = getDayName(gd.id);
           const isEditing = editingDayName === gd.id;
           return (
-            <div key={gd.id} className="flex flex-col">
+            <div key={gd.id} className="flex flex-col flex-shrink-0">
               <button onClick={() => setActiveGymDay(gd.id)}
+                style={{minWidth:'72px'}}
                 className={`flex flex-col items-center px-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${isActive ? 'tab-active border-transparent text-white shadow-lg glow-red' : 'border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
                 <span className="text-base mb-0.5">{gd.emoji}</span>
                 {isEditing ? (
@@ -1122,6 +1344,13 @@ function GeneralWorkoutSection({ gymWorkout, onUpdate }) {
           onNote={setNote}
         />
       </div>
+
+      {/* Spotify Playlist Recommendations */}
+      <SpotifySection
+        gymDayId={activeGymDay}
+        spotifyUser={gymWorkout.spotifyUser || ''}
+        onSetSpotifyUser={setSpotifyUser}
+      />
     </div>
   );
 }
