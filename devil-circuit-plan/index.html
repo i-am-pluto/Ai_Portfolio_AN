@@ -221,12 +221,28 @@ function ProgressRing({ pct, size = 60, stroke = 5, color = '#e63946' }) {
   );
 }
 
-// ─── JSONBlob Database ───────────────────────────────────────────────────────
+// ─── JSONBlob Database (with localStorage fallback) ──────────────────────────
 const REGISTRY_ID = '019cd151-cd55-748c-b371-766685b82eff';
 const REGISTRY_URL = `https://jsonblob.com/api/jsonBlob/${REGISTRY_ID}`;
 const SESSION_KEY = 'dc_current_user';
+const LS_REGISTRY_KEY = 'dc_registry';
+const LS_BLOB_PREFIX = 'dc_blob_';
 
-async function fetchWithRetry(url, options = {}, retries = 3, timeoutMs = 10000) {
+// localStorage helpers
+function lsGetRegistry() {
+  try { return JSON.parse(localStorage.getItem(LS_REGISTRY_KEY) || '{"users":{}}'); } catch(_) { return { users: {} }; }
+}
+function lsSetRegistry(r) {
+  try { localStorage.setItem(LS_REGISTRY_KEY, JSON.stringify(r)); } catch(_) {}
+}
+function lsGetBlob(id) {
+  try { return JSON.parse(localStorage.getItem(LS_BLOB_PREFIX + id) || 'null'); } catch(_) { return null; }
+}
+function lsSetBlob(id, data) {
+  try { localStorage.setItem(LS_BLOB_PREFIX + id, JSON.stringify(data)); } catch(_) {}
+}
+
+async function fetchWithRetry(url, options = {}, retries = 1, timeoutMs = 6000) {
   for (let i = 0; i <= retries; i++) {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), timeoutMs);
@@ -237,7 +253,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, timeoutMs = 10000)
     } catch (e) {
       clearTimeout(tid);
       if (i === retries) throw e;
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+      await new Promise(r => setTimeout(r, 800));
     }
   }
 }
@@ -245,47 +261,76 @@ async function fetchWithRetry(url, options = {}, retries = 3, timeoutMs = 10000)
 async function getRegistry() {
   try {
     const res = await fetchWithRetry(REGISTRY_URL);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const remote = await res.json();
+      // merge remote into local so we keep any local-only users
+      const local = lsGetRegistry();
+      const merged = { users: { ...local.users, ...remote.users } };
+      lsSetRegistry(merged);
+      return merged;
+    }
   } catch (_) {}
-  return { users: {} };
+  return lsGetRegistry();
 }
 
 async function updateRegistry(registry) {
-  await fetchWithRetry(REGISTRY_URL, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify(registry)
-  });
+  lsSetRegistry(registry);
+  try {
+    await fetchWithRetry(REGISTRY_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(registry)
+    });
+  } catch (_) {} // local save already done; cloud sync best-effort
 }
 
 async function createBlob(data) {
-  const res = await fetchWithRetry('https://jsonblob.com/api/jsonBlob', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  const loc = res.headers.get('location') || '';
-  return loc.split('/').pop();
+  try {
+    const res = await fetchWithRetry('https://jsonblob.com/api/jsonBlob', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const loc = res.headers.get('location') || '';
+    const id = loc.split('/').pop();
+    if (id) { lsSetBlob(id, data); return id; }
+  } catch (_) {}
+  // fallback: local-only ID
+  const localId = 'local_' + (data.username || Date.now());
+  lsSetBlob(localId, data);
+  return localId;
 }
 
 async function loadBlob(id) {
-  try {
-    const res = await fetchWithRetry(`https://jsonblob.com/api/jsonBlob/${id}`);
-    if (res.ok) return await res.json();
-  } catch (_) {}
-  return null;
+  if (!id) return null;
+  if (!id.startsWith('local_')) {
+    try {
+      const res = await fetchWithRetry(`https://jsonblob.com/api/jsonBlob/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        lsSetBlob(id, data); // keep local cache fresh
+        return data;
+      }
+    } catch (_) {}
+  }
+  return lsGetBlob(id);
 }
 
 async function saveBlob(id, data) {
   if (!id) return;
-  await fetchWithRetry(`https://jsonblob.com/api/jsonBlob/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify(data)
-  });
+  lsSetBlob(id, data);
+  if (!id.startsWith('local_')) {
+    try {
+      await fetchWithRetry(`https://jsonblob.com/api/jsonBlob/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch (_) {} // local save already done
+  }
 }
 
-// Login: look up or create user entry in registry
+// Login: look up or create user — always succeeds (falls back to localStorage)
 async function loginUser(username) {
   const key = username.trim().toLowerCase();
   const registry = await getRegistry();
@@ -294,7 +339,6 @@ async function loginUser(username) {
 
   if (!blobId) {
     blobId = await createBlob({ ...init, username: key, createdAt: Date.now() });
-    if (!blobId) throw new Error('Failed to create user blob');
     const updated = { ...registry, users: { ...(registry.users || {}), [key]: blobId } };
     await updateRegistry(updated);
     return { blobId, data: init, isNew: true };
@@ -721,11 +765,7 @@ function LoginScreen({ onLogin, onLeaderboard }) {
       sessionStorage.setItem(SESSION_KEY, trimmed.toLowerCase());
       onLogin(trimmed.toLowerCase(), result);
     } catch (e) {
-      if (e.name === 'AbortError' || e.message?.includes('abort')) {
-        setErr('Request timed out — check your internet & retry');
-      } else {
-        setErr('Connection error — check internet & retry');
-      }
+      setErr('Something went wrong — try again');
     }
     setLoading(false);
   };
