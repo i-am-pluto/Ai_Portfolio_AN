@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Devil Circuit Delhi — 6-Day Battle Plan</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    .bebas { font-family: 'Bebas Neue', sans-serif; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #e63946; border-radius: 2px; }
+    .glow-red { box-shadow: 0 0 20px rgba(230,57,70,0.3); }
+    .glow-orange { box-shadow: 0 0 20px rgba(255,107,53,0.3); }
+    .day-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .day-card:hover { transform: translateY(-2px); }
+    .exercise-item { transition: all 0.2s ease; }
+    .progress-ring { transition: stroke-dashoffset 0.5s ease; }
+    .flame { animation: flicker 1.5s infinite alternate; }
+    @keyframes flicker { 0%{opacity:1;transform:scale(1)} 100%{opacity:0.7;transform:scale(1.05)} }
+    .pulse-red { animation: pulseRed 2s infinite; }
+    @keyframes pulseRed { 0%,100%{box-shadow:0 0 0 0 rgba(230,57,70,0.4)} 50%{box-shadow:0 0 0 12px rgba(230,57,70,0)} }
+    .slide-in { animation: slideIn 0.4s ease; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .badge-glow { animation: badgeGlow 2s infinite alternate; }
+    @keyframes badgeGlow { from{box-shadow:0 0 8px rgba(230,57,70,0.5)} to{box-shadow:0 0 20px rgba(255,107,53,0.8)} }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: #e63946; cursor: pointer; flex-shrink: 0; }
+    textarea { resize: none; }
+    .tab-active { background: linear-gradient(135deg, #e63946, #ff6b35); }
+    .completed-day { background: linear-gradient(135deg, rgba(76,175,80,0.15), rgba(76,175,80,0.05)); border-color: rgba(76,175,80,0.4) !important; }
+    .race-day-card { background: linear-gradient(135deg, #e63946 0%, #ff6b35 50%, #e63946 100%); background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { brand: '#e63946', orange: '#ff6b35' }
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── Training Data ──────────────────────────────────────────────────────────
+const RACE_DATE = new Date('2026-03-15T06:00:00+05:30');
+const BLOB_KEY = 'dc_delhi_blob_id';
+
+const PLAN = [
+  {
+    day: 1, date: 'Mon, Mar 9', label: 'Obstacle Foundations',
+    theme: 'Upper Body + Grip Strength',
+    emoji: '💪',
+    color: '#e63946',
+    tip: 'Focus on grip — rope climbs & wall crossings demand it. Every pull-up is a wall conquered.',
+    warmup: '10 min light jog + arm circles',
+    cooldown: '10 min stretch + contrast shower',
+    exercises: [
+      { id: 'e1_1', name: 'Pull-ups', detail: '4 × 8 reps', icon: '🏋️' },
+      { id: 'e1_2', name: 'Dead Hang', detail: '3 × 30 sec hold', icon: '🤲' },
+      { id: 'e1_3', name: 'Push-ups', detail: '4 × 15 reps', icon: '⬇️' },
+      { id: 'e1_4', name: 'Burpees', detail: '3 × 10 reps', icon: '🔥' },
+      { id: 'e1_5', name: 'Box Jumps', detail: '4 × 10 reps', icon: '📦' },
+      { id: 'e1_6', name: 'Plank Hold', detail: '3 × 45 sec', icon: '🎯' },
+    ]
+  },
+  {
+    day: 2, date: 'Tue, Mar 10', label: 'Speed & Fire',
+    theme: 'Interval Running + Agility',
+    emoji: '⚡',
+    color: '#ff6b35',
+    tip: 'OCR courses mix running with obstacles. Train fast-twitch muscles today — your legs will carry you between walls.',
+    warmup: '15 min easy jog',
+    cooldown: '10 min jog + 15 min stretch',
+    exercises: [
+      { id: 'e2_1', name: '400m Intervals', detail: '6 × 400m at race pace (90s rest)', icon: '🏃' },
+      { id: 'e2_2', name: 'Agility Ladder', detail: '4 sets × through & back', icon: '🪜' },
+      { id: 'e2_3', name: 'Lateral Bounds', detail: '3 × 12 each side', icon: '↔️' },
+      { id: 'e2_4', name: 'Quick Feet Drills', detail: '4 × 30 sec', icon: '👟' },
+      { id: 'e2_5', name: 'High Knees', detail: '4 × 30 sec', icon: '🦵' },
+    ]
+  },
+  {
+    day: 3, date: 'Wed, Mar 11', label: 'Beast Mode',
+    theme: 'Full-Body Functional Strength',
+    emoji: '🦁',
+    color: '#e63946',
+    tip: 'Devil Circuit has carry events, crawls, and climbs. Today you become the obstacle.',
+    warmup: '10 min dynamic warmup',
+    cooldown: '15 min foam rolling + stretch',
+    exercises: [
+      { id: 'e3_1', name: 'Bear Crawl', detail: '4 × 30m forward + back', icon: '🐻' },
+      { id: 'e3_2', name: 'Sandbag / Goblet Squat', detail: '4 × 10 reps (heavy)', icon: '🏋️' },
+      { id: 'e3_3', name: 'TRX Rows / Inverted Rows', detail: '4 × 10 reps', icon: '🔗' },
+      { id: 'e3_4', name: 'Tire Flips / Deadlifts', detail: '4 × 8 reps (max effort)', icon: '🔄' },
+      { id: 'e3_5', name: 'Duck Walk', detail: '3 × 20m', icon: '🦆' },
+      { id: 'e3_6', name: 'Core Circuit', detail: 'Sit-ups 3×20 + Russian Twists 3×20', icon: '🌀' },
+    ]
+  },
+  {
+    day: 4, date: 'Thu, Mar 12', label: 'Hills & Grit',
+    theme: 'Trail Run + Obstacle Simulation',
+    emoji: '⛰️',
+    color: '#ff6b35',
+    tip: 'Race terrain in Delhi includes inclines and uneven ground. Train the terrain, not just the distance.',
+    warmup: '10 min easy pace',
+    cooldown: '15 min foam roll + ice pack knees',
+    exercises: [
+      { id: 'e4_1', name: 'Incline Treadmill / Trail Run', detail: '40–50 min at moderate effort', icon: '🏔️' },
+      { id: 'e4_2', name: 'Hill Sprints', detail: '6 × 30 sec (max effort)', icon: '💨' },
+      { id: 'e4_3', name: 'Step-ups w/ Weight', detail: '3 × 12 each leg', icon: '🪜' },
+      { id: 'e4_4', name: 'Low Crawl Simulation', detail: '4 × 15m (belly to ground)', icon: '🪖' },
+      { id: 'e4_5', name: 'Box Step-overs', detail: '3 × 10 each leg', icon: '📦' },
+    ]
+  },
+  {
+    day: 5, date: 'Fri, Mar 13', label: 'Recover & Reload',
+    theme: 'Active Recovery + Carb Load',
+    emoji: '🧘',
+    color: '#8b5cf6',
+    tip: 'Recovery IS training. Your muscles rebuild stronger during rest. Sleep 9 hours, carb load, stay off alcohol.',
+    warmup: 'None — let body rest',
+    cooldown: 'Cold shower (contrast therapy)',
+    exercises: [
+      { id: 'e5_1', name: 'Easy Jog', detail: '20 min — fully conversational pace', icon: '🚶' },
+      { id: 'e5_2', name: 'Yoga / Full Stretch', detail: '30 min — hips, hammies, shoulders', icon: '🧘' },
+      { id: 'e5_3', name: 'Foam Rolling', detail: '15 min — IT band, quads, calves', icon: '🪵' },
+      { id: 'e5_4', name: 'Ice / Cold Shower', detail: '10–15 min contrast therapy', icon: '🧊' },
+      { id: 'e5_5', name: 'Hydration Protocol', detail: '3–4L water + electrolytes', icon: '💧' },
+      { id: 'e5_6', name: 'Carb Load Meal', detail: 'Pasta / rice heavy dinner', icon: '🍝' },
+    ]
+  },
+  {
+    day: 6, date: 'Sat, Mar 14', label: 'Zero Day',
+    theme: 'Race Prep + Mental Lock-in',
+    emoji: '🎯',
+    color: '#f59e0b',
+    tip: 'Nothing new today — no new food, no new gear, no hard training. Pack the bag, visualize the victory.',
+    warmup: 'None',
+    cooldown: 'Early sleep by 9PM',
+    exercises: [
+      { id: 'e6_1', name: 'Light Jog', detail: '15 min — just loosen up', icon: '🏃' },
+      { id: 'e6_2', name: 'Dynamic Stretching', detail: '10 min — legs + arms', icon: '🤸' },
+      { id: 'e6_3', name: 'Gear Check', detail: 'Shoes, clothes, gloves, nutrition belt', icon: '🎒' },
+      { id: 'e6_4', name: 'Pack Race Bag', detail: 'See gear checklist ↓', icon: '🧳' },
+      { id: 'e6_5', name: 'Pasta / Carb Dinner', detail: 'Eat by 7PM, sleep by 9PM', icon: '🍜' },
+      { id: 'e6_6', name: 'Visualization', detail: '10 min eyes-closed mental race run', icon: '🧠' },
+    ]
+  },
+];
+
+const GEAR = [
+  { id: 'g1', item: 'Trail running shoes (grip sole)', icon: '👟' },
+  { id: 'g2', item: 'Old clothes you don\'t mind trashing', icon: '👕' },
+  { id: 'g3', item: 'Gloves (grip for ropes & walls)', icon: '🧤' },
+  { id: 'g4', item: 'Knee & elbow pads (optional but smart)', icon: '🦺' },
+  { id: 'g5', item: 'Hydration belt or small backpack', icon: '🎒' },
+  { id: 'g6', item: 'Energy gels / protein bar (mid-race)', icon: '⚡' },
+  { id: 'g7', item: 'Sunscreen SPF 50+', icon: '☀️' },
+  { id: 'g8', item: 'Race bib (collect at venue)', icon: '🏷️' },
+  { id: 'g9', item: 'Government ID proof', icon: '🪪' },
+  { id: 'g10', item: '500ml water bottle', icon: '💧' },
+];
+
+const RACE_MORNING = [
+  'Wake up 2–3 hours before race start',
+  'Breakfast: Banana + toast + peanut butter',
+  'Drink 500ml water 30 min before start',
+  '10 min jog warmup + dynamic stretch',
+  'Arrive venue 45 min early for bib collection',
+  'ATTACK THE COURSE — YOU\'VE TRAINED FOR THIS 🔥',
+];
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState({});
+  useEffect(() => {
+    const calc = () => {
+      const now = new Date();
+      const diff = RACE_DATE - now;
+      if (diff <= 0) return setTimeLeft({ d: 0, h: 0, m: 0, s: 0 });
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeLeft({ d, h, m, s });
+    };
+    calc();
+    const id = setInterval(calc, 1000);
+    return () => clearInterval(id);
+  }, []);
+  return timeLeft;
+}
+
+function ProgressRing({ pct, size = 60, stroke = 5, color = '#e63946' }) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="rotate-[-90deg]">
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#222" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color}
+        strokeWidth={stroke} strokeDasharray={circ}
+        strokeDashoffset={offset} strokeLinecap="round"
+        className="progress-ring" />
+    </svg>
+  );
+}
+
+// ─── JSONBlob Database ───────────────────────────────────────────────────────
+async function loadOrCreateBlob(initData) {
+  const blobId = localStorage.getItem(BLOB_KEY);
+  if (blobId) {
+    try {
+      const res = await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`);
+      if (res.ok) return { id: blobId, data: await res.json() };
+    } catch (_) {}
+  }
+  // Create new blob
+  const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(initData)
+  });
+  const loc = res.headers.get('location') || '';
+  const id = loc.split('/').pop();
+  if (id) localStorage.setItem(BLOB_KEY, id);
+  return { id, data: initData };
+}
+
+async function saveBlob(id, data) {
+  if (!id) return;
+  await fetch(`https://jsonblob.com/api/jsonBlob/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+// ─── Initial State ────────────────────────────────────────────────────────────
+function makeInitialState() {
+  const progress = {};
+  PLAN.forEach(d => { progress[`day${d.day}`] = { checked: {}, note: '' }; });
+  const gear = {};
+  GEAR.forEach(g => { gear[g.id] = false; });
+  return { progress, gear, startedAt: Date.now() };
+}
+
+// ─── Components ──────────────────────────────────────────────────────────────
+function CountdownUnit({ val, label }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className="bebas text-5xl leading-none text-white" style={{textShadow:'0 0 20px rgba(230,57,70,0.6)'}}>{String(val).padStart(2,'0')}</span>
+      <span className="text-xs text-gray-500 uppercase tracking-widest mt-1">{label}</span>
+    </div>
+  );
+}
+
+function DayTab({ plan, active, completed, onClick }) {
+  const pct = completed || 0;
+  return (
+    <button onClick={onClick} className={`relative flex flex-col items-center px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${active ? 'tab-active border-transparent text-white shadow-lg glow-red' : 'border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
+      <span className="text-base mb-0.5">{plan.emoji}</span>
+      <span className="bebas text-sm leading-none">D{plan.day}</span>
+      {pct === 100 && <span className="absolute -top-1.5 -right-1.5 text-xs">✅</span>}
+    </button>
+  );
+}
+
+function ExerciseItem({ ex, checked, onToggle }) {
+  return (
+    <div onClick={onToggle} className={`exercise-item flex items-center gap-3 p-3 rounded-xl cursor-pointer border ${checked ? 'bg-green-900/20 border-green-700/40' : 'bg-white/3 border-gray-800 hover:bg-white/5 hover:border-gray-600'}`}>
+      <input type="checkbox" checked={checked} onChange={onToggle} onClick={e=>e.stopPropagation()} />
+      <span className="text-xl flex-shrink-0">{ex.icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className={`font-semibold text-sm ${checked ? 'line-through text-gray-500' : 'text-white'}`}>{ex.name}</div>
+        <div className="text-xs text-gray-500 mt-0.5">{ex.detail}</div>
+      </div>
+    </div>
+  );
+}
+
+function DayCard({ plan, dayProgress, onToggle, onNote }) {
+  const total = plan.exercises.length;
+  const done = Object.values(dayProgress.checked || {}).filter(Boolean).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  return (
+    <div className="slide-in">
+      {/* Day header */}
+      <div className="flex items-start gap-4 mb-6">
+        <div className="relative flex-shrink-0">
+          <ProgressRing pct={pct} size={70} stroke={6} color={plan.color} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xl">{plan.emoji}</span>
+          </div>
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs text-gray-500 uppercase tracking-widest">{plan.date}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{background: plan.color + '30', color: plan.color}}>{pct}%</span>
+          </div>
+          <h2 className="bebas text-3xl leading-none text-white">{plan.label}</h2>
+          <p className="text-sm text-gray-400 mt-1">{plan.theme}</p>
+        </div>
+      </div>
+
+      {/* Warm / Cool */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="bg-white/3 border border-gray-800 rounded-xl p-3">
+          <div className="text-xs text-orange-400 font-semibold uppercase tracking-wider mb-1">🔆 Warm-up</div>
+          <div className="text-xs text-gray-300">{plan.warmup}</div>
+        </div>
+        <div className="bg-white/3 border border-gray-800 rounded-xl p-3">
+          <div className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">❄️ Cool-down</div>
+          <div className="text-xs text-gray-300">{plan.cooldown}</div>
+        </div>
+      </div>
+
+      {/* Exercises */}
+      <div className="space-y-2 mb-4">
+        {plan.exercises.map(ex => (
+          <ExerciseItem key={ex.id} ex={ex}
+            checked={!!dayProgress.checked?.[ex.id]}
+            onToggle={() => onToggle(ex.id)} />
+        ))}
+      </div>
+
+      {/* Tip */}
+      <div className="border rounded-xl p-4 mb-4" style={{borderColor: plan.color + '40', background: plan.color + '10'}}>
+        <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{color: plan.color}}>⚡ Coach's Tip</div>
+        <p className="text-sm text-gray-300 leading-relaxed">{plan.tip}</p>
+      </div>
+
+      {/* Notes */}
+      <div className="bg-white/3 border border-gray-800 rounded-xl p-4">
+        <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">📝 Day Notes</div>
+        <textarea className="w-full bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none"
+          rows={2} placeholder="How did it go? Pain points? PRs?"
+          value={dayProgress.note || ''}
+          onChange={e => onNote(e.target.value)} />
+      </div>
+    </div>
+  );
+}
+
+function GearChecklist({ gear, onToggle }) {
+  const done = Object.values(gear).filter(Boolean).length;
+  const total = GEAR.length;
+  return (
+    <div className="mt-8 bg-white/2 border border-gray-800 rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="bebas text-2xl text-white">Race Day Gear</h3>
+        <span className="text-sm text-gray-400">{done}/{total} packed</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {GEAR.map(g => (
+          <div key={g.id} onClick={() => onToggle(g.id)}
+            className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition-all ${gear[g.id] ? 'bg-green-900/20 border-green-700/40' : 'bg-white/2 border-gray-800 hover:bg-white/4'}`}>
+            <input type="checkbox" checked={!!gear[g.id]} onChange={() => onToggle(g.id)} onClick={e=>e.stopPropagation()} />
+            <span className="text-lg">{g.icon}</span>
+            <span className={`text-sm ${gear[g.id] ? 'line-through text-gray-500' : 'text-gray-300'}`}>{g.item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RaceMorningCard() {
+  return (
+    <div className="mt-6 race-day-card rounded-2xl p-6 text-white">
+      <h3 className="bebas text-3xl mb-4">☀️ Race Morning Protocol</h3>
+      <ul className="space-y-2">
+        {RACE_MORNING.map((item, i) => (
+          <li key={i} className="flex items-start gap-3 text-sm font-medium">
+            <span className="flex-shrink-0 w-6 h-6 bg-black/20 rounded-full flex items-center justify-center text-xs font-bold">{i+1}</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function OverallProgress({ progress }) {
+  let totalEx = 0, totalDone = 0;
+  PLAN.forEach(d => {
+    totalEx += d.exercises.length;
+    const p = progress[`day${d.day}`] || {};
+    totalDone += Object.values(p.checked || {}).filter(Boolean).length;
+  });
+  const pct = totalEx > 0 ? Math.round((totalDone / totalEx) * 100) : 0;
+  return (
+    <div className="flex items-center gap-4 bg-white/3 border border-gray-800 rounded-2xl px-5 py-4">
+      <ProgressRing pct={pct} size={56} stroke={5} color="#e63946" />
+      <div>
+        <div className="text-xs text-gray-500 uppercase tracking-wider">Overall Progress</div>
+        <div className="bebas text-2xl text-white mt-0.5">{totalDone} / {totalEx} Exercises Done</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+function App() {
+  const [activeDay, setActiveDay] = useState(1);
+  const [dbState, setDbState] = useState(null); // { id, data }
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const saveTimer = useRef(null);
+  const timeLeft = useCountdown();
+
+  // Load from JSONBlob on mount
+  useEffect(() => {
+    const init = makeInitialState();
+    loadOrCreateBlob(init).then(result => {
+      // Merge with init to handle new fields
+      const merged = { ...init, ...result.data, progress: { ...init.progress, ...result.data.progress }, gear: { ...init.gear, ...result.data.gear } };
+      setDbState({ id: result.id, data: merged });
+    }).catch(() => {
+      // Fallback to localStorage
+      const local = localStorage.getItem('dc_progress');
+      setDbState({ id: null, data: local ? JSON.parse(local) : init });
+    });
+  }, []);
+
+  const scheduleSave = useCallback((newData, id) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      setSyncing(true);
+      try {
+        await saveBlob(id, newData);
+        localStorage.setItem('dc_progress', JSON.stringify(newData));
+        setSyncMsg('Saved ✓');
+      } catch (_) {
+        setSyncMsg('Offline — saved locally');
+      }
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(''), 2000);
+    }, 800);
+  }, []);
+
+  const updateData = useCallback((updater) => {
+    setDbState(prev => {
+      if (!prev) return prev;
+      const newData = updater(prev.data);
+      scheduleSave(newData, prev.id);
+      return { ...prev, data: newData };
+    });
+  }, [scheduleSave]);
+
+  const toggleExercise = useCallback((dayNum, exId) => {
+    updateData(data => ({
+      ...data,
+      progress: {
+        ...data.progress,
+        [`day${dayNum}`]: {
+          ...data.progress[`day${dayNum}`],
+          checked: {
+            ...data.progress[`day${dayNum}`]?.checked,
+            [exId]: !data.progress[`day${dayNum}`]?.checked?.[exId]
+          }
+        }
+      }
+    }));
+  }, [updateData]);
+
+  const updateNote = useCallback((dayNum, note) => {
+    updateData(data => ({
+      ...data,
+      progress: { ...data.progress, [`day${dayNum}`]: { ...data.progress[`day${dayNum}`], note } }
+    }));
+  }, [updateData]);
+
+  const toggleGear = useCallback((gid) => {
+    updateData(data => ({ ...data, gear: { ...data.gear, [gid]: !data.gear[gid] } }));
+  }, [updateData]);
+
+  if (!dbState) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 flame">🔥</div>
+          <div className="text-gray-400 text-sm">Loading your battle plan...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const { data } = dbState;
+  const currentPlan = PLAN.find(p => p.day === activeDay);
+
+  // Compute per-day completion %
+  const dayPcts = {};
+  PLAN.forEach(p => {
+    const prog = data.progress[`day${p.day}`] || {};
+    const done = Object.values(prog.checked || {}).filter(Boolean).length;
+    dayPcts[p.day] = p.exercises.length > 0 ? Math.round((done / p.exercises.length) * 100) : 0;
+  });
+
+  const raceToday = new Date() >= RACE_DATE;
+
+  return (
+    <div className="min-h-screen max-w-2xl mx-auto px-4 py-6">
+
+      {/* Header */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-2 bg-red-950/50 border border-red-900/50 rounded-full px-4 py-1.5 mb-3">
+          <span className="w-2 h-2 bg-red-500 rounded-full pulse-red inline-block"></span>
+          <span className="text-xs text-red-400 uppercase tracking-widest font-semibold">Delhi — Mar 15, 2026</span>
+        </div>
+        <h1 className="bebas text-5xl sm:text-6xl leading-none text-white tracking-wide">
+          Devil <span style={{color:'#e63946'}}>Circuit</span>
+        </h1>
+        <p className="text-gray-500 text-sm mt-2 tracking-wider">6-Day Battle Plan · Conquer Every Obstacle</p>
+      </div>
+
+      {/* Countdown */}
+      {!raceToday ? (
+        <div className="bg-white/3 border border-gray-800 rounded-2xl p-5 mb-6">
+          <div className="text-xs text-gray-600 uppercase tracking-widest text-center mb-3">Time Until Race</div>
+          <div className="flex items-center justify-center gap-6">
+            <CountdownUnit val={timeLeft.d} label="days" />
+            <span className="text-gray-700 text-2xl bebas">:</span>
+            <CountdownUnit val={timeLeft.h} label="hrs" />
+            <span className="text-gray-700 text-2xl bebas">:</span>
+            <CountdownUnit val={timeLeft.m} label="min" />
+            <span className="text-gray-700 text-2xl bebas">:</span>
+            <CountdownUnit val={timeLeft.s} label="sec" />
+          </div>
+        </div>
+      ) : (
+        <div className="race-day-card rounded-2xl p-5 mb-6 text-center">
+          <div className="bebas text-4xl">🔥 RACE DAY! GO CRUSH IT! 🔥</div>
+        </div>
+      )}
+
+      {/* Overall progress */}
+      <div className="mb-6">
+        <OverallProgress progress={data.progress} />
+      </div>
+
+      {/* Day tabs */}
+      <div className="grid grid-cols-6 gap-2 mb-6">
+        {PLAN.map(p => (
+          <DayTab key={p.day} plan={p} active={activeDay === p.day}
+            completed={dayPcts[p.day]}
+            onClick={() => setActiveDay(p.day)} />
+        ))}
+      </div>
+
+      {/* Day card */}
+      <div key={activeDay} className="bg-white/3 border border-gray-800 rounded-2xl p-5 mb-2">
+        <DayCard
+          plan={currentPlan}
+          dayProgress={data.progress[`day${activeDay}`] || { checked: {}, note: '' }}
+          onToggle={(exId) => toggleExercise(activeDay, exId)}
+          onNote={(note) => updateNote(activeDay, note)}
+        />
+      </div>
+
+      {/* Sync indicator */}
+      <div className="text-right text-xs mb-6 h-4">
+        {syncing && <span className="text-yellow-500">⟳ Syncing...</span>}
+        {syncMsg && !syncing && <span className="text-green-500">{syncMsg}</span>}
+        {dbState.id && !syncing && !syncMsg && (
+          <span className="text-gray-700">☁ Cloud synced · ID: {dbState.id.slice(0,8)}...</span>
+        )}
+      </div>
+
+      {/* Gear checklist */}
+      <GearChecklist gear={data.gear} onToggle={toggleGear} />
+
+      {/* Race morning protocol */}
+      <RaceMorningCard />
+
+      {/* Footer */}
+      <div className="text-center mt-8 pb-4 text-gray-700 text-xs">
+        <p>Progress saved to JSONBlob cloud · Auto-synced across devices</p>
+        <p className="mt-1 bebas text-sm text-gray-600">Devil Circuit Delhi 2026 · Train Hard, Run Harder 🔥</p>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
