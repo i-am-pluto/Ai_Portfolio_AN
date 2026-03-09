@@ -36,6 +36,10 @@
     .completed-day { background: linear-gradient(135deg, rgba(76,175,80,0.15), rgba(76,175,80,0.05)); border-color: rgba(76,175,80,0.4) !important; }
     .race-day-card { background: linear-gradient(135deg, #e63946 0%, #ff6b35 50%, #e63946 100%); background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
     @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    .lb-row { transition: all 0.2s ease; }
+    .lb-row:hover { background: rgba(255,255,255,0.05); }
+    .skeleton { animation: skeleton 1.2s ease infinite; background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%); background-size: 200% 100%; }
+    @keyframes skeleton { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
   <script>
     tailwind.config = {
@@ -222,16 +226,32 @@ const REGISTRY_ID = '019cd151-cd55-748c-b371-766685b82eff';
 const REGISTRY_URL = `https://jsonblob.com/api/jsonBlob/${REGISTRY_ID}`;
 const SESSION_KEY = 'dc_current_user';
 
+async function fetchWithRetry(url, options = {}, retries = 3, timeoutMs = 10000) {
+  for (let i = 0; i <= retries; i++) {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(tid);
+      return res;
+    } catch (e) {
+      clearTimeout(tid);
+      if (i === retries) throw e;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+    }
+  }
+}
+
 async function getRegistry() {
   try {
-    const res = await fetch(REGISTRY_URL);
+    const res = await fetchWithRetry(REGISTRY_URL);
     if (res.ok) return await res.json();
   } catch (_) {}
   return { users: {} };
 }
 
 async function updateRegistry(registry) {
-  await fetch(REGISTRY_URL, {
+  await fetchWithRetry(REGISTRY_URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(registry)
@@ -239,7 +259,7 @@ async function updateRegistry(registry) {
 }
 
 async function createBlob(data) {
-  const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+  const res = await fetchWithRetry('https://jsonblob.com/api/jsonBlob', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(data)
@@ -249,14 +269,16 @@ async function createBlob(data) {
 }
 
 async function loadBlob(id) {
-  const res = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`);
-  if (res.ok) return await res.json();
+  try {
+    const res = await fetchWithRetry(`https://jsonblob.com/api/jsonBlob/${id}`);
+    if (res.ok) return await res.json();
+  } catch (_) {}
   return null;
 }
 
 async function saveBlob(id, data) {
   if (!id) return;
-  await fetch(`https://jsonblob.com/api/jsonBlob/${id}`, {
+  await fetchWithRetry(`https://jsonblob.com/api/jsonBlob/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(data)
@@ -271,18 +293,47 @@ async function loginUser(username) {
   const init = makeInitialState();
 
   if (!blobId) {
-    // New user — create their blob + register them
     blobId = await createBlob({ ...init, username: key, createdAt: Date.now() });
+    if (!blobId) throw new Error('Failed to create user blob');
     const updated = { ...registry, users: { ...(registry.users || {}), [key]: blobId } };
     await updateRegistry(updated);
     return { blobId, data: init, isNew: true };
   }
 
-  // Existing user — load their blob
   const existing = await loadBlob(blobId);
   if (!existing) return { blobId, data: init, isNew: false };
   const merged = { ...init, ...existing, progress: { ...init.progress, ...existing.progress }, gear: { ...init.gear, ...existing.gear } };
   return { blobId, data: merged, isNew: false };
+}
+
+// ─── Leaderboard Data ────────────────────────────────────────────────────────
+const TOTAL_EXERCISES = PLAN.reduce((sum, d) => sum + d.exercises.length, 0);
+
+function calcUserProgress(data) {
+  if (!data) return { totalDone: 0, totalEx: TOTAL_EXERCISES, pct: 0, dayPcts: {} };
+  let totalDone = 0;
+  const dayPcts = {};
+  PLAN.forEach(d => {
+    const p = data.progress?.[`day${d.day}`] || {};
+    const done = Object.values(p.checked || {}).filter(Boolean).length;
+    totalDone += done;
+    dayPcts[d.day] = d.exercises.length > 0 ? Math.round((done / d.exercises.length) * 100) : 0;
+  });
+  const pct = Math.round((totalDone / TOTAL_EXERCISES) * 100);
+  return { totalDone, totalEx: TOTAL_EXERCISES, pct, dayPcts };
+}
+
+async function fetchLeaderboard() {
+  const registry = await getRegistry();
+  const users = registry.users || {};
+  const entries = await Promise.all(
+    Object.entries(users).map(async ([username, blobId]) => {
+      const data = await loadBlob(blobId);
+      const stats = calcUserProgress(data);
+      return { username, blobId, ...stats, lastSeen: data?.lastSeen || data?.createdAt || null };
+    })
+  );
+  return entries.sort((a, b) => b.pct - a.pct || b.totalDone - a.totalDone);
 }
 
 // ─── Initial State ────────────────────────────────────────────────────────────
@@ -450,8 +501,210 @@ function OverallProgress({ progress }) {
   );
 }
 
+// ─── Leaderboard Screen ───────────────────────────────────────────────────────
+const RANK_MEDALS = ['🥇', '🥈', '🥉'];
+
+function LeaderboardRow({ entry, rank, isCurrentUser }) {
+  const medal = RANK_MEDALS[rank] || null;
+  const barColor = entry.pct === 100 ? '#4ade80' : entry.pct > 50 ? '#ff6b35' : '#e63946';
+
+  return (
+    <div className={`lb-row flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${isCurrentUser ? 'border-red-700/60 bg-red-950/30' : 'border-gray-800/60 bg-white/2'}`}>
+      {/* Rank */}
+      <div className="w-7 text-center flex-shrink-0">
+        {medal
+          ? <span className="text-xl">{medal}</span>
+          : <span className="text-sm text-gray-500 font-bold">#{rank + 1}</span>
+        }
+      </div>
+
+      {/* Name + bar */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className={`text-sm font-bold capitalize truncate ${isCurrentUser ? 'text-red-400' : 'text-white'}`}>
+            {entry.username}
+          </span>
+          {isCurrentUser && <span className="text-xs bg-red-900/50 text-red-400 border border-red-800/50 px-1.5 py-0.5 rounded-full flex-shrink-0">you</span>}
+          {entry.pct === 100 && <span className="text-xs">🔥</span>}
+        </div>
+        {/* Progress bar */}
+        <div className="w-full bg-gray-800 rounded-full h-1.5">
+          <div className="h-1.5 rounded-full transition-all duration-700"
+            style={{ width: `${entry.pct}%`, background: barColor }} />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="text-right flex-shrink-0">
+        <div className="text-sm font-bold" style={{ color: barColor }}>{entry.pct}%</div>
+        <div className="text-xs text-gray-600">{entry.totalDone}/{entry.totalEx}</div>
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardScreen({ currentUser, onBack }) {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+  const [lastRefresh, setLastRefresh] = useState(null);
+
+  const load = async () => {
+    setLoading(true);
+    setErr('');
+    try {
+      const data = await fetchLeaderboard();
+      setEntries(data);
+      setLastRefresh(new Date());
+    } catch (_) {
+      setErr('Could not load leaderboard — check your connection and retry.');
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const topPct = entries.length > 0 ? entries[0].pct : 0;
+  const myRank = entries.findIndex(e => e.username === currentUser);
+
+  return (
+    <div className="min-h-screen max-w-2xl mx-auto px-4 py-6 slide-in">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={onBack}
+          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-full px-3 py-1.5 transition-colors">
+          ← Back
+        </button>
+        <div className="flex-1 text-center">
+          <h1 className="bebas text-3xl text-white">Squad Leaderboard</h1>
+          <p className="text-xs text-gray-600">Devil Circuit Delhi · Mar 15, 2026</p>
+        </div>
+        <button onClick={load} disabled={loading}
+          className="text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-full px-3 py-1.5 transition-colors disabled:opacity-40">
+          {loading ? '⟳' : '↻ Refresh'}
+        </button>
+      </div>
+
+      {/* Top summary bar */}
+      {!loading && entries.length > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white/3 border border-gray-800 rounded-2xl p-4 text-center">
+            <div className="bebas text-3xl text-white">{entries.length}</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Athletes</div>
+          </div>
+          <div className="bg-white/3 border border-gray-800 rounded-2xl p-4 text-center">
+            <div className="bebas text-3xl" style={{color:'#ff6b35'}}>{topPct}%</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Top Score</div>
+          </div>
+          <div className="bg-white/3 border border-gray-800 rounded-2xl p-4 text-center">
+            {myRank >= 0
+              ? <><div className="bebas text-3xl" style={{color:'#e63946'}}>#{myRank + 1}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Your Rank</div></>
+              : <><div className="bebas text-3xl text-gray-600">—</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Your Rank</div></>
+            }
+          </div>
+        </div>
+      )}
+
+      {/* Loading skeletons */}
+      {loading && (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="skeleton h-14 rounded-xl" />
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {!loading && err && (
+        <div className="text-center py-12">
+          <div className="text-4xl mb-3">📡</div>
+          <p className="text-red-400 text-sm mb-4">{err}</p>
+          <button onClick={load} className="text-sm font-semibold px-4 py-2 rounded-xl text-white" style={{background:'linear-gradient(135deg,#e63946,#ff6b35)'}}>
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Empty */}
+      {!loading && !err && entries.length === 0 && (
+        <div className="text-center py-12 text-gray-600 text-sm">
+          No athletes yet — be the first!
+        </div>
+      )}
+
+      {/* Leaderboard list */}
+      {!loading && !err && entries.length > 0 && (
+        <div className="space-y-2">
+          {entries.map((entry, i) => (
+            <LeaderboardRow
+              key={entry.username}
+              entry={entry}
+              rank={i}
+              isCurrentUser={currentUser && entry.username === currentUser}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Last refresh */}
+      {lastRefresh && !loading && (
+        <p className="text-center text-xs text-gray-700 mt-4">
+          Updated {lastRefresh.toLocaleTimeString()}
+        </p>
+      )}
+
+      {/* Per-day breakdown legend */}
+      {!loading && !err && entries.length > 0 && (
+        <div className="mt-6 bg-white/2 border border-gray-800 rounded-2xl p-4">
+          <div className="text-xs text-gray-500 uppercase tracking-wider mb-3">Per-Day Breakdown — Top Athletes</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr>
+                  <th className="text-left text-gray-600 pb-2 pr-3 font-medium">Athlete</th>
+                  {PLAN.map(p => (
+                    <th key={p.day} className="text-center text-gray-600 pb-2 px-1 font-medium">{p.emoji}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {entries.slice(0, 10).map(entry => (
+                  <tr key={entry.username} className={entry.username === currentUser ? 'text-red-400' : 'text-gray-400'}>
+                    <td className="pr-3 py-1.5 font-semibold capitalize truncate max-w-[80px]">{entry.username}</td>
+                    {PLAN.map(p => {
+                      const pct = entry.dayPcts?.[p.day] || 0;
+                      const color = pct === 100 ? '#4ade80' : pct > 0 ? '#ff6b35' : '#374151';
+                      return (
+                        <td key={p.day} className="text-center px-1 py-1.5">
+                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
+                            style={{ background: color + '25', color }}>
+                            {pct === 100 ? '✓' : pct > 0 ? '~' : '·'}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center gap-4 mt-3 text-xs text-gray-600">
+            <span><span className="text-green-400 font-bold">✓</span> Complete</span>
+            <span><span className="text-orange-400 font-bold">~</span> In progress</span>
+            <span><span className="text-gray-600 font-bold">·</span> Not started</span>
+          </div>
+        </div>
+      )}
+
+      <div className="pb-8" />
+    </div>
+  );
+}
+
 // ─── Login Screen ─────────────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
+function LoginScreen({ onLogin, onLeaderboard }) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
@@ -467,8 +720,12 @@ function LoginScreen({ onLogin }) {
       const result = await loginUser(trimmed);
       sessionStorage.setItem(SESSION_KEY, trimmed.toLowerCase());
       onLogin(trimmed.toLowerCase(), result);
-    } catch (_) {
-      setErr('Connection error — check internet & retry');
+    } catch (e) {
+      if (e.name === 'AbortError' || e.message?.includes('abort')) {
+        setErr('Request timed out — check your internet & retry');
+      } else {
+        setErr('Connection error — check internet & retry');
+      }
     }
     setLoading(false);
   };
@@ -507,6 +764,12 @@ function LoginScreen({ onLogin }) {
 
           <p className="text-gray-700 text-xs text-center mt-4">No password needed · Your ID is your key</p>
         </div>
+
+        {/* Leaderboard peek */}
+        <button onClick={onLeaderboard}
+          className="w-full mt-4 py-3 rounded-xl font-semibold text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 transition-colors flex items-center justify-center gap-2">
+          🏆 View Squad Leaderboard
+        </button>
       </div>
     </div>
   );
@@ -515,10 +778,11 @@ function LoginScreen({ onLogin }) {
 // ─── App ─────────────────────────────────────────────────────────────────────
 function App() {
   const [activeDay, setActiveDay] = useState(1);
-  const [user, setUser] = useState(null); // username string
-  const [dbState, setDbState] = useState(null); // { id, data }
+  const [user, setUser] = useState(null);
+  const [dbState, setDbState] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
+  const [view, setView] = useState('login'); // 'login' | 'dashboard' | 'leaderboard'
   const saveTimer = useRef(null);
   const timeLeft = useCountdown();
 
@@ -526,11 +790,15 @@ function App() {
   useEffect(() => {
     const saved = sessionStorage.getItem(SESSION_KEY);
     if (saved) {
+      setUser(saved);
+      setView('loading');
       loginUser(saved).then(result => {
-        setUser(saved);
         setDbState({ id: result.blobId, data: result.data });
+        setView('dashboard');
       }).catch(() => {
         sessionStorage.removeItem(SESSION_KEY);
+        setUser(null);
+        setView('login');
       });
     }
   }, []);
@@ -538,12 +806,14 @@ function App() {
   const handleLogin = (username, result) => {
     setUser(username);
     setDbState({ id: result.blobId, data: result.data });
+    setView('dashboard');
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem(SESSION_KEY);
     setUser(null);
     setDbState(null);
+    setView('login');
   };
 
   const scheduleSave = useCallback((newData, id) => {
@@ -551,7 +821,7 @@ function App() {
     saveTimer.current = setTimeout(async () => {
       setSyncing(true);
       try {
-        await saveBlob(id, newData);
+        await saveBlob(id, { ...newData, lastSeen: Date.now() });
         setSyncMsg('Saved ✓');
       } catch (_) {
         setSyncMsg('Offline');
@@ -597,11 +867,8 @@ function App() {
     updateData(data => ({ ...data, gear: { ...data.gear, [gid]: !data.gear[gid] } }));
   }, [updateData]);
 
-  // Not logged in
-  if (!user) return <LoginScreen onLogin={handleLogin} />;
-
-  // Logged in but data still loading (auto-resume from session)
-  if (!dbState) {
+  // Loading state
+  if (view === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -612,10 +879,31 @@ function App() {
     );
   }
 
+  // Login
+  if (view === 'login') {
+    return <LoginScreen onLogin={handleLogin} onLeaderboard={() => setView('leaderboard')} />;
+  }
+
+  // Leaderboard (accessible both logged in and out)
+  if (view === 'leaderboard') {
+    return <LeaderboardScreen currentUser={user} onBack={() => setView(user && dbState ? 'dashboard' : 'login')} />;
+  }
+
+  // Dashboard guard
+  if (!dbState) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 flame">🔥</div>
+          <div className="text-gray-400 text-sm">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   const { data } = dbState;
   const currentPlan = PLAN.find(p => p.day === activeDay);
 
-  // Compute per-day completion %
   const dayPcts = {};
   PLAN.forEach(p => {
     const prog = data.progress[`day${p.day}`] || {};
@@ -636,10 +924,16 @@ function App() {
             <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
             <span className="text-xs text-gray-300 font-semibold capitalize">{user}</span>
           </div>
-          <button onClick={handleLogout}
-            className="text-xs text-gray-600 hover:text-gray-300 border border-gray-800 hover:border-gray-600 rounded-full px-3 py-1.5 transition-colors">
-            Switch user ↗
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setView('leaderboard')}
+              className="text-xs text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-full px-3 py-1.5 transition-colors flex items-center gap-1">
+              🏆 Leaderboard
+            </button>
+            <button onClick={handleLogout}
+              className="text-xs text-gray-600 hover:text-gray-300 border border-gray-800 hover:border-gray-600 rounded-full px-3 py-1.5 transition-colors">
+              Switch ↗
+            </button>
+          </div>
         </div>
 
         <div className="inline-flex items-center gap-2 bg-red-950/50 border border-red-900/50 rounded-full px-4 py-1.5 mb-3">
