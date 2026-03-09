@@ -55,7 +55,6 @@ const { useState, useEffect, useCallback, useRef } = React;
 
 // ─── Training Data ──────────────────────────────────────────────────────────
 const RACE_DATE = new Date('2026-03-15T06:00:00+05:30');
-const BLOB_KEY = 'dc_delhi_blob_id';
 
 const PLAN = [
   {
@@ -219,24 +218,40 @@ function ProgressRing({ pct, size = 60, stroke = 5, color = '#e63946' }) {
 }
 
 // ─── JSONBlob Database ───────────────────────────────────────────────────────
-async function loadOrCreateBlob(initData) {
-  const blobId = localStorage.getItem(BLOB_KEY);
-  if (blobId) {
-    try {
-      const res = await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`);
-      if (res.ok) return { id: blobId, data: await res.json() };
-    } catch (_) {}
-  }
-  // Create new blob
+const REGISTRY_ID = '019cd151-cd55-748c-b371-766685b82eff';
+const REGISTRY_URL = `https://jsonblob.com/api/jsonBlob/${REGISTRY_ID}`;
+const SESSION_KEY = 'dc_current_user';
+
+async function getRegistry() {
+  try {
+    const res = await fetch(REGISTRY_URL);
+    if (res.ok) return await res.json();
+  } catch (_) {}
+  return { users: {} };
+}
+
+async function updateRegistry(registry) {
+  await fetch(REGISTRY_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(registry)
+  });
+}
+
+async function createBlob(data) {
   const res = await fetch('https://jsonblob.com/api/jsonBlob', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify(initData)
+    body: JSON.stringify(data)
   });
   const loc = res.headers.get('location') || '';
-  const id = loc.split('/').pop();
-  if (id) localStorage.setItem(BLOB_KEY, id);
-  return { id, data: initData };
+  return loc.split('/').pop();
+}
+
+async function loadBlob(id) {
+  const res = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`);
+  if (res.ok) return await res.json();
+  return null;
 }
 
 async function saveBlob(id, data) {
@@ -246,6 +261,28 @@ async function saveBlob(id, data) {
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(data)
   });
+}
+
+// Login: look up or create user entry in registry
+async function loginUser(username) {
+  const key = username.trim().toLowerCase();
+  const registry = await getRegistry();
+  let blobId = registry.users?.[key];
+  const init = makeInitialState();
+
+  if (!blobId) {
+    // New user — create their blob + register them
+    blobId = await createBlob({ ...init, username: key, createdAt: Date.now() });
+    const updated = { ...registry, users: { ...(registry.users || {}), [key]: blobId } };
+    await updateRegistry(updated);
+    return { blobId, data: init, isNew: true };
+  }
+
+  // Existing user — load their blob
+  const existing = await loadBlob(blobId);
+  if (!existing) return { blobId, data: init, isNew: false };
+  const merged = { ...init, ...existing, progress: { ...init.progress, ...existing.progress }, gear: { ...init.gear, ...existing.gear } };
+  return { blobId, data: merged, isNew: false };
 }
 
 // ─── Initial State ────────────────────────────────────────────────────────────
@@ -413,28 +450,101 @@ function OverallProgress({ progress }) {
   );
 }
 
+// ─── Login Screen ─────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handle = async (e) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return setErr('Enter your name or a squad ID');
+    if (!/^[a-zA-Z0-9_\- ]{2,24}$/.test(trimmed)) return setErr('2–24 chars, letters/numbers/spaces only');
+    setErr('');
+    setLoading(true);
+    try {
+      const result = await loginUser(trimmed);
+      sessionStorage.setItem(SESSION_KEY, trimmed.toLowerCase());
+      onLogin(trimmed.toLowerCase(), result);
+    } catch (_) {
+      setErr('Connection error — check internet & retry');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm slide-in">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-3 flame">🔥</div>
+          <h1 className="bebas text-5xl text-white tracking-wide">Devil <span style={{color:'#e63946'}}>Circuit</span></h1>
+          <p className="text-gray-500 text-sm mt-2">Delhi · Mar 15, 2026</p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white/3 border border-gray-800 rounded-2xl p-6">
+          <h2 className="text-white font-bold text-lg mb-1">Jump In</h2>
+          <p className="text-gray-500 text-sm mb-5">Enter your name or pick a squad ID — your progress saves automatically across devices.</p>
+
+          <form onSubmit={handle} className="space-y-4">
+            <div>
+              <input
+                type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="e.g. Arjun, runner42, TeamRed…"
+                className="w-full bg-white/5 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none focus:border-red-600 transition-colors text-sm"
+                autoFocus disabled={loading}
+              />
+              {err && <p className="text-red-400 text-xs mt-2">{err}</p>}
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all disabled:opacity-50"
+              style={{background: loading ? '#555' : 'linear-gradient(135deg,#e63946,#ff6b35)'}}>
+              {loading ? '⟳ Connecting...' : 'Start Training →'}
+            </button>
+          </form>
+
+          <p className="text-gray-700 text-xs text-center mt-4">No password needed · Your ID is your key</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── App ─────────────────────────────────────────────────────────────────────
 function App() {
   const [activeDay, setActiveDay] = useState(1);
+  const [user, setUser] = useState(null); // username string
   const [dbState, setDbState] = useState(null); // { id, data }
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
   const saveTimer = useRef(null);
   const timeLeft = useCountdown();
 
-  // Load from JSONBlob on mount
+  // Check for existing session on mount
   useEffect(() => {
-    const init = makeInitialState();
-    loadOrCreateBlob(init).then(result => {
-      // Merge with init to handle new fields
-      const merged = { ...init, ...result.data, progress: { ...init.progress, ...result.data.progress }, gear: { ...init.gear, ...result.data.gear } };
-      setDbState({ id: result.id, data: merged });
-    }).catch(() => {
-      // Fallback to localStorage
-      const local = localStorage.getItem('dc_progress');
-      setDbState({ id: null, data: local ? JSON.parse(local) : init });
-    });
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved) {
+      loginUser(saved).then(result => {
+        setUser(saved);
+        setDbState({ id: result.blobId, data: result.data });
+      }).catch(() => {
+        sessionStorage.removeItem(SESSION_KEY);
+      });
+    }
   }, []);
+
+  const handleLogin = (username, result) => {
+    setUser(username);
+    setDbState({ id: result.blobId, data: result.data });
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setUser(null);
+    setDbState(null);
+  };
 
   const scheduleSave = useCallback((newData, id) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -442,10 +552,9 @@ function App() {
       setSyncing(true);
       try {
         await saveBlob(id, newData);
-        localStorage.setItem('dc_progress', JSON.stringify(newData));
         setSyncMsg('Saved ✓');
       } catch (_) {
-        setSyncMsg('Offline — saved locally');
+        setSyncMsg('Offline');
       }
       setSyncing(false);
       setTimeout(() => setSyncMsg(''), 2000);
@@ -488,12 +597,16 @@ function App() {
     updateData(data => ({ ...data, gear: { ...data.gear, [gid]: !data.gear[gid] } }));
   }, [updateData]);
 
+  // Not logged in
+  if (!user) return <LoginScreen onLogin={handleLogin} />;
+
+  // Logged in but data still loading (auto-resume from session)
   if (!dbState) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4 flame">🔥</div>
-          <div className="text-gray-400 text-sm">Loading your battle plan...</div>
+          <div className="text-gray-400 text-sm">Loading {user}'s battle plan...</div>
         </div>
       </div>
     );
@@ -517,6 +630,18 @@ function App() {
 
       {/* Header */}
       <div className="text-center mb-6">
+        {/* User bar */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 bg-white/5 border border-gray-800 rounded-full px-3 py-1.5">
+            <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+            <span className="text-xs text-gray-300 font-semibold capitalize">{user}</span>
+          </div>
+          <button onClick={handleLogout}
+            className="text-xs text-gray-600 hover:text-gray-300 border border-gray-800 hover:border-gray-600 rounded-full px-3 py-1.5 transition-colors">
+            Switch user ↗
+          </button>
+        </div>
+
         <div className="inline-flex items-center gap-2 bg-red-950/50 border border-red-900/50 rounded-full px-4 py-1.5 mb-3">
           <span className="w-2 h-2 bg-red-500 rounded-full pulse-red inline-block"></span>
           <span className="text-xs text-red-400 uppercase tracking-widest font-semibold">Delhi — Mar 15, 2026</span>
