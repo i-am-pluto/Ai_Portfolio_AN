@@ -1,5 +1,7 @@
 # AI Stock Analyzer + Dual-MCP Portfolio Agent
 
+[![Open Devil Circuit Training Plan](https://img.shields.io/badge/Open-Devil%20Circuit%20Training%20Plan-orange?style=for-the-badge)](https://raw.githack.com/i-am-pluto/Ai_Portfolio_AN/master/devil-circuit-plan/index.html)
+
 This repository contains:
 - A **FastMCP stock-analyzer server** for Indian equities
 - A **LangGraph portfolio agent** that connects to both `kite` and `stock-analyzer`
