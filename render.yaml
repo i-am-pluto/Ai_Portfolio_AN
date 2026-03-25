@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ai-portfolio-mcp
+    runtime: python
+    buildCommand: pip install uv && uv sync
+    startCommand: uv run python -m stocks_fetch
+    healthCheckPath: /health
+    envVars:
+      - key: MCP_TRANSPORT
+        value: sse
+      - key: MCP_HOST
+        value: "0.0.0.0"
+      - key: MCP_PORT
+        fromService:
+          type: web
+          name: ai-portfolio-mcp
+          property: port
+      # Set these in Render dashboard (secrets):
+      # LLM_PROVIDER, GROQ_API_KEY, GROQ_MODEL
+      # USE_KITE, KITE_SSE_URL
+      # AI_BACKEND, PORTFOLIO_REPORT_DIR

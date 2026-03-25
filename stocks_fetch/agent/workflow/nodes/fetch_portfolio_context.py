@@ -22,7 +22,12 @@ def build_fetch_portfolio_context_node(ctx: WorkflowContext):
         next_state = init_next_state(state)
 
         if not ctx.mcp.kite_connected:
+            # Preserve symbols seeded by caller (e.g. from trigger_portfolio_analysis)
+            # before resetting Kite-specific context.
+            seeded_symbols = list(next_state.get("symbols") or [])
             reset_kite_context(next_state)
+            if seeded_symbols:
+                next_state["symbols"] = seeded_symbols
             return next_state
 
         tools = next_state.get("tools_catalog", {}).get("kite", [])
