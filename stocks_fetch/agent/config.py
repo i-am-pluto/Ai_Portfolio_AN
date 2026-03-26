@@ -13,6 +13,14 @@ DEFAULT_GROK_MODEL = "grok-2-latest"
 DEFAULT_XAI_BASE_URL = "https://api.x.ai/v1"
 DEFAULT_KITE_SSE_URL = "https://mcp.kite.trade/sse"
 
+# MCP server transport settings (for SSE / cloud deployment)
+DEFAULT_MCP_TRANSPORT = "stdio"   # "stdio" | "sse"
+DEFAULT_MCP_HOST = "0.0.0.0"
+DEFAULT_MCP_PORT = 8000
+
+# Pluggable AI backend
+DEFAULT_AI_BACKEND = "langgraph"  # "langgraph" | future: "claude_api"
+
 
 def _env_bool(name: str, default: bool) -> bool:
     """Read boolean environment values with common true/false spellings."""
@@ -45,6 +53,12 @@ class AgentConfig:
     auth_retry_delay: float = 3.0
     tool_retry_delay: float = 2.0
     report_dir: Path = Path("reports")
+    # MCP server transport (used by server.py main())
+    mcp_transport: str = DEFAULT_MCP_TRANSPORT
+    mcp_host: str = DEFAULT_MCP_HOST
+    mcp_port: int = DEFAULT_MCP_PORT
+    # Pluggable AI backend for trigger_portfolio_analysis
+    ai_backend: str = DEFAULT_AI_BACKEND
 
     @classmethod
     def from_env(cls, require_model_key: bool = True) -> AgentConfig:
@@ -96,6 +110,14 @@ class AgentConfig:
             correlation_returns_type=os.environ.get("CORRELATION_RETURNS_TYPE", "simple").strip()
             or "simple",
             report_dir=report_dir,
+            mcp_transport=os.environ.get("MCP_TRANSPORT", DEFAULT_MCP_TRANSPORT).strip().lower()
+            or DEFAULT_MCP_TRANSPORT,
+            mcp_host=os.environ.get("MCP_HOST", DEFAULT_MCP_HOST).strip() or DEFAULT_MCP_HOST,
+            mcp_port=int(
+                os.environ.get("MCP_PORT", os.environ.get("PORT", str(DEFAULT_MCP_PORT)))
+            ),
+            ai_backend=os.environ.get("AI_BACKEND", DEFAULT_AI_BACKEND).strip()
+            or DEFAULT_AI_BACKEND,
         )
 
     def with_overrides(
